@@ -146,9 +146,9 @@ export class ProviderServerError extends RouterError {
 
 export class AllProvidersExhaustedError extends RouterError {
   readonly kind = 'all_exhausted' as const
-  readonly errors: Array<{ provider: string; message: string }>
+  readonly errors: { provider: string; message: string }[]
   readonly provider = 'all'
-  constructor(errors: Array<{ provider: string; message: string }>) {
+  constructor(errors: { provider: string; message: string }[]) {
     super(`All providers exhausted: ${errors.map((e) => e.provider).join(', ')}`)
     this.name = 'AllProvidersExhaustedError'
     this.errors = errors

@@ -1,5 +1,5 @@
 import type { ProviderConfig, RouterConfig, AnthropicRequest } from '../types/index.js'
-import { CircuitBreaker } from './circuit-breaker.js'
+import type { CircuitBreaker } from './circuit-breaker.js'
 import {
   ProviderTimeoutError,
   ProviderAuthError,
@@ -53,7 +53,7 @@ export class FailoverRouter {
     body: AnthropicRequest,
   ): Promise<{ result: T; provider: string }> {
     const { order, config } = this
-    const errors: Array<{ provider: string; message: string }> = []
+    const errors: { provider: string; message: string }[] = []
 
     for (const providerName of order) {
       const provider = this.providerMap.get(providerName)

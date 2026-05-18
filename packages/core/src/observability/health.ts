@@ -28,7 +28,7 @@ export interface HealthReport {
 
 export function getHealthReport(
   circuitBreaker: CircuitBreaker,
-  activeProviders: Array<{ name: string; displayName: string }>,
+  activeProviders: { name: string; displayName: string }[],
   startTime: number,
   version: string,
 ): HealthReport {

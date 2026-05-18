@@ -202,7 +202,8 @@ export function createServer(options: ProxyServerOptions): http.Server {
       if (!checkAuth(req, res)) return
 
       // Content-Type validation
-      const contentType = (req.headers['content-type'] ?? '').split(';')[0]!.trim()
+      const [mediaType = ''] = (req.headers['content-type'] ?? '').split(';')
+      const contentType = mediaType.trim()
       if (contentType !== 'application/json') {
         res.writeHead(415, { 'Content-Type': 'application/json' })
         res.end(
@@ -568,9 +569,11 @@ function makeHttpRequest(routed: RoutedRequest, stream: boolean): Promise<HttpRe
                 ),
               )
             } else if (isAuth) {
-              reject(new ProviderAuthError(routed.provider.name, res.statusCode!, sanitizedMsg))
+              reject(new ProviderAuthError(routed.provider.name, res.statusCode ?? 0, sanitizedMsg))
             } else if (isServerErr) {
-              reject(new ProviderServerError(routed.provider.name, res.statusCode!, sanitizedMsg))
+              reject(
+                new ProviderServerError(routed.provider.name, res.statusCode ?? 0, sanitizedMsg),
+              )
             } else {
               reject(new Error(sanitizedMsg))
             }

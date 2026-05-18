@@ -22,7 +22,7 @@ function tryGetTransport() {
   }
 }
 
-export function createLogger(name: string, level: string = 'info'): pino.Logger {
+export function createLogger(name: string, level = 'info'): pino.Logger {
   return pino({
     name,
     level,

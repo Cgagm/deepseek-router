@@ -5,8 +5,11 @@ import { createLogger } from '../observability/logger.js'
 const loggers = new Map<string, ReturnType<typeof createLogger>>()
 
 function getLogger(name: string) {
-  if (!loggers.has(name)) loggers.set(name, createLogger(`circuit:${name}`))
-  return loggers.get(name)!
+  const existing = loggers.get(name)
+  if (existing) return existing
+  const logger = createLogger(`circuit:${name}`)
+  loggers.set(name, logger)
+  return logger
 }
 
 interface CircuitEntry {
@@ -124,7 +127,7 @@ export class CircuitBreaker {
   }
 
   /** Get health stats for all providers */
-  getHealth(): Array<{
+  getHealth(): {
     name: string
     state: CircuitState
     consecutiveFailures: number
@@ -132,7 +135,7 @@ export class CircuitBreaker {
     totalRequests: number
     lastFailure: string | null
     lastSuccess: string | null
-  }> {
+  }[] {
     return [...this.entries.entries()].map(([name, entry]) => ({
       name,
       state: entry.state,
@@ -150,20 +153,21 @@ export class CircuitBreaker {
   }
 
   private getOrCreate(providerName: string): CircuitEntry {
-    if (!this.entries.has(providerName)) {
-      this.entries.set(providerName, {
-        state: CircuitState.Closed,
-        consecutiveFailures: 0,
-        totalFailures: 0,
-        totalRequests: 0,
-        lastFailure: null,
-        lastSuccess: null,
-        openedAt: null,
-        halfOpenCount: 0,
-        pendingRequests: 0,
-        nextRetryAfter: 0,
-      })
+    const existing = this.entries.get(providerName)
+    if (existing) return existing
+    const entry: CircuitEntry = {
+      state: CircuitState.Closed,
+      consecutiveFailures: 0,
+      totalFailures: 0,
+      totalRequests: 0,
+      lastFailure: null,
+      lastSuccess: null,
+      openedAt: null,
+      halfOpenCount: 0,
+      pendingRequests: 0,
+      nextRetryAfter: 0,
     }
-    return this.entries.get(providerName)!
+    this.entries.set(providerName, entry)
+    return entry
   }
 }

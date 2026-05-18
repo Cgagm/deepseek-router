@@ -54,7 +54,7 @@ export function openAIChunkToAnthropicEvents(
     )
   }
 
-  const choice = (chunk.choices as Array<Record<string, unknown>>)?.[0]
+  const choice = (chunk.choices as Record<string, unknown>[])?.[0]
   if (!choice) return events
 
   const delta = (choice.delta ?? {}) as Record<string, unknown>
@@ -75,7 +75,7 @@ export function openAIChunkToAnthropicEvents(
 
   // ── Tool calls ──
   if (Array.isArray(delta.tool_calls)) {
-    for (const tc of delta.tool_calls as Array<Record<string, unknown>>) {
+    for (const tc of delta.tool_calls as Record<string, unknown>[]) {
       const idx = (tc.index as number) ?? 0
       if (!state.toolBlocks[idx]) {
         state.toolBlocks[idx] = {
@@ -86,7 +86,8 @@ export function openAIChunkToAnthropicEvents(
           blockIndex: state.nextBlockIndex++,
         }
       }
-      const tb = state.toolBlocks[idx]!
+      const tb = state.toolBlocks[idx]
+      if (!tb) continue
 
       if (tc.id && typeof tc.id === 'string') tb.id = tc.id
       const func = tc.function as Record<string, string> | undefined
@@ -119,7 +120,8 @@ export function openAIChunkToAnthropicEvents(
 
     // Close tool blocks
     for (const idx of Object.keys(state.toolBlocks).map(Number)) {
-      const tb = state.toolBlocks[idx]!
+      const tb = state.toolBlocks[idx]
+      if (!tb) continue
       if (tb.started && !tb.stopped) {
         tb.stopped = true
         events.push(

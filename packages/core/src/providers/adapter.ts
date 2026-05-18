@@ -8,7 +8,7 @@ export function anthropicToOpenAI(
 ): { path: string; headers: Record<string, string>; body: Buffer } {
   const model = provider.models[body.model] ?? body.model
 
-  const messages: Array<Record<string, unknown>> = []
+  const messages: Record<string, unknown>[] = []
   const openai: Record<string, unknown> = {
     model,
     messages,
@@ -31,8 +31,8 @@ export function anthropicToOpenAI(
       messages.push({ role: msg.role, content: msg.content })
     } else if (Array.isArray(msg.content)) {
       const texts: string[] = []
-      const toolCalls: Array<Record<string, unknown>> = []
-      const toolResults: Array<Record<string, unknown>> = []
+      const toolCalls: Record<string, unknown>[] = []
+      const toolResults: Record<string, unknown>[] = []
 
       for (const block of msg.content) {
         if (block.type === 'text') {
@@ -178,7 +178,7 @@ export function openAIToAnthropic(
   data: Record<string, unknown>,
   model: string,
 ): Record<string, unknown> {
-  const choice = (data.choices as Array<Record<string, unknown>>)?.[0]
+  const choice = (data.choices as Record<string, unknown>[])?.[0]
   if (!choice) {
     return {
       id: `msg_${Date.now()}`,
@@ -193,14 +193,14 @@ export function openAIToAnthropic(
   }
 
   const message = choice.message as Record<string, unknown> | undefined
-  const content: Array<Record<string, unknown>> = []
+  const content: Record<string, unknown>[] = []
 
   if (message?.content) {
     content.push({ type: 'text', text: message.content })
   }
 
   if (message?.tool_calls) {
-    for (const tc of message.tool_calls as Array<Record<string, unknown>>) {
+    for (const tc of message.tool_calls as Record<string, unknown>[]) {
       let input = {}
       try {
         input = JSON.parse((tc.function as Record<string, string>)?.arguments ?? '{}')

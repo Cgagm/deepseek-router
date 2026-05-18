@@ -247,7 +247,9 @@ export function watchConfig(
     currentConfig = loadConfig(path)
   } catch (err) {
     onError(err instanceof ConfigValidationError ? err : new ConfigValidationError(String(err)))
-    return () => {}
+    return () => {
+      /* noop — watcher never started */
+    }
   }
 
   let debounceTimer: ReturnType<typeof setTimeout> | undefined
