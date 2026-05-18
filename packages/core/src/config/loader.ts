@@ -25,9 +25,15 @@ const providerSchema = z
         z
           .string()
           .regex(/^[a-zA-Z0-9_-]+$/, 'Header name must be alphanumeric')
-          .refine((n) => !/^(host|authorization|x-api-key|api-key|content-length)$/i.test(n), {
-            message: 'Security-critical headers cannot be overridden',
-          }),
+          .refine(
+            (n) =>
+              !/^(host|authorization|x-api-key|api-key|content-length|content-type|transfer-encoding|connection)$/i.test(
+                n,
+              ),
+            {
+              message: 'Security-critical headers cannot be overridden',
+            },
+          ),
         z.string().refine((v) => !/[\r\n]/.test(v), 'Header value must not contain CRLF'),
       )
       .optional(),

@@ -7,6 +7,7 @@ import {
   ProviderServerError,
   AllProvidersExhaustedError,
   CircuitState,
+  ConfigValidationError,
 } from '../types/index.js'
 import { createLogger } from '../observability/logger.js'
 
@@ -36,6 +37,12 @@ export class FailoverRouter {
   private config: RouterConfig
 
   constructor(providers: ProviderConfig[], config: RouterConfig, circuitBreaker: CircuitBreaker) {
+    if (config.providerOrder.length === 0) {
+      throw new ConfigValidationError(
+        'providerOrder must contain at least one provider',
+        'router.providerOrder',
+      )
+    }
     this.providerMap = new Map(providers.map((p) => [p.name, p]))
     this.order = config.providerOrder.filter((n) => this.providerMap.has(n))
     this.circuitBreaker = circuitBreaker
@@ -85,20 +92,24 @@ export class FailoverRouter {
         const timeoutMs = provider.timeoutMs ?? config.globalTimeoutMs
         let timer: ReturnType<typeof setTimeout> | undefined
 
-        const result = await Promise.race([
-          requestFn(routed),
-          new Promise<never>((_, reject) => {
-            timer = setTimeout(() => {
-              controller.abort()
-              reject(new ProviderTimeoutError(providerName, 'Request timed out'))
-            }, timeoutMs)
-          }),
-        ])
+        try {
+          const result = await Promise.race([
+            requestFn(routed),
+            new Promise<never>((_, reject) => {
+              timer = setTimeout(() => {
+                controller.abort()
+                reject(new ProviderTimeoutError(providerName, 'Request timed out'))
+              }, timeoutMs)
+            }),
+          ])
 
-        clearTimeout(timer)
-        this.circuitBreaker.recordSuccess(providerName)
-        logger.debug({ provider: providerName }, `Request succeeded via ${provider.displayName}`)
-        return { result, provider: providerName }
+          clearTimeout(timer)
+          this.circuitBreaker.recordSuccess(providerName)
+          logger.debug({ provider: providerName }, `Request succeeded via ${provider.displayName}`)
+          return { result, provider: providerName }
+        } finally {
+          clearTimeout(timer)
+        }
       } catch (err) {
         this.circuitBreaker.recordFailure(providerName)
 

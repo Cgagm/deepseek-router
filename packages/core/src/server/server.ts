@@ -243,6 +243,7 @@ export function createServer(options: ProxyServerOptions): http.Server {
       let body = ''
       let bodySize = 0
       req.on('data', (chunk: Buffer) => {
+        if (requestAborted) return
         bodySize += chunk.length
         if (bodySize > MAX_BODY_SIZE) {
           requestAborted = true
@@ -266,6 +267,11 @@ export function createServer(options: ProxyServerOptions): http.Server {
           metrics.requestCompleted('unknown')
           if (rateLimiter) rateLimiter.requestCompleted()
           requestAborted = true
+          try {
+            res.end()
+          } catch {
+            /* connection already closed */
+          }
         }
       })
 
@@ -335,10 +341,17 @@ export function createServer(options: ProxyServerOptions): http.Server {
               rawStream: http.IncomingMessage
             }
             if (result.format === 'anthropic') {
-              // Native Anthropic SSE — pass through
+              // Native Anthropic SSE — pass through with error/close handling
               res.writeHead(httpResult.status ?? 200, {
                 'Content-Type': 'text/event-stream',
                 'Cache-Control': 'no-cache',
+              })
+              res.on('close', () => {
+                httpResult.rawStream.destroy()
+              })
+              httpResult.rawStream.on('error', (err: Error) => {
+                logger.error({ err }, 'Upstream SSE stream error (native)')
+                res.destroy()
               })
               httpResult.rawStream.pipe(res)
             } else {
@@ -523,6 +536,20 @@ function makeHttpRequest(routed: RoutedRequest, stream: boolean): Promise<HttpRe
   const url = new URL(endpoint)
 
   return new Promise((resolve, reject) => {
+    let settled = false
+    const safeResolve = (val: HttpResult) => {
+      if (!settled) {
+        settled = true
+        resolve(val)
+      }
+    }
+    const safeReject = (err: unknown) => {
+      if (!settled) {
+        settled = true
+        reject(err)
+      }
+    }
+
     const req = https.request(
       {
         hostname: url.hostname,
@@ -561,7 +588,7 @@ function makeHttpRequest(routed: RoutedRequest, stream: boolean): Promise<HttpRe
               const retryAfter = res.headers['retry-after']
                 ? parseInt(res.headers['retry-after'], 10) || null
                 : null
-              reject(
+              safeReject(
                 new ProviderRateLimitError(
                   routed.provider.name,
                   sanitizedMsg,
@@ -569,20 +596,23 @@ function makeHttpRequest(routed: RoutedRequest, stream: boolean): Promise<HttpRe
                 ),
               )
             } else if (isAuth) {
-              reject(new ProviderAuthError(routed.provider.name, res.statusCode ?? 0, sanitizedMsg))
+              safeReject(
+                new ProviderAuthError(routed.provider.name, res.statusCode ?? 0, sanitizedMsg),
+              )
             } else if (isServerErr) {
-              reject(
+              safeReject(
                 new ProviderServerError(routed.provider.name, res.statusCode ?? 0, sanitizedMsg),
               )
             } else {
-              reject(new Error(sanitizedMsg))
+              safeReject(new Error(sanitizedMsg))
             }
           })
+          res.on('error', safeReject)
           return
         }
 
         if (stream) {
-          resolve({
+          safeResolve({
             format: routed.provider.format,
             stream: true,
             status: res.statusCode ?? 200,
@@ -594,22 +624,23 @@ function makeHttpRequest(routed: RoutedRequest, stream: boolean): Promise<HttpRe
           res.on('end', () => {
             try {
               const body = JSON.parse(data)
-              resolve({
+              safeResolve({
                 format: routed.provider.format,
                 stream: false,
                 status: res.statusCode ?? 200,
                 body,
               })
             } catch {
-              reject(new Error(`${routed.provider.name}: Failed to parse response`))
+              safeReject(new Error(`${routed.provider.name}: Failed to parse response`))
             }
           })
+          res.on('error', safeReject)
         }
       },
     )
 
     req.on('error', (err: Error) => {
-      reject(new Error(`${routed.provider.name}: ${err.message}`))
+      safeReject(new Error(`${routed.provider.name}: ${err.message}`))
     })
 
     req.write(bodyBuf)
