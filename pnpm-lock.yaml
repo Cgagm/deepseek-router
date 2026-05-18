@@ -21,14 +21,24 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  packages/cli:
+    dependencies:
+      '@deepseek-router/core':
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/node':
+        specifier: ^20.12.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+
   packages/core:
     dependencies:
       pino:
         specifier: ^9.0.0
         version: 9.14.0
-      pino-pretty:
-        specifier: ^11.0.0
-        version: 11.3.0
       zod:
         specifier: ^3.23.0
         version: 3.25.76
@@ -42,6 +52,9 @@ importers:
       eslint:
         specifier: ^9.0.0
         version: 9.39.4
+      pino-pretty:
+        specifier: ^11.0.0
+        version: 11.3.0
       typescript:
         specifier: ^5.4.0
         version: 5.9.3

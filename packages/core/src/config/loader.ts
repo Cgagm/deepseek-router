@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { readFileSync, existsSync, watch } from 'fs'
-import { resolve, dirname } from 'path'
+import { resolve } from 'path'
 import type { ProviderConfig } from '../types/index.js'
 import { ConfigValidationError } from '../types/index.js'
 import { createLogger } from '../observability/logger.js'
@@ -8,24 +8,44 @@ import { createLogger } from '../observability/logger.js'
 const logger = createLogger('config')
 
 // ── Zod schemas (single source of truth for validation) ──
-const providerSchema = z.object({
-  name: z.string().min(1),
-  displayName: z.string().min(1),
-  endpoint: z.string().url(),
-  apiKey: z.string().min(1),
-  format: z.enum(['anthropic', 'openai']),
-  authType: z.enum(['bearer', 'x-api-key', 'api-key']).default('bearer'),
-  models: z.record(z.string(), z.string()),
-  headers: z.record(z.string(), z.string()).optional(),
-  weight: z.number().int().min(1).max(10).default(5),
-  timeoutMs: z.number().int().min(1000).max(600000).default(120000),
-  maxRetries: z.number().int().min(0).max(10).default(2),
-})
+const providerSchema = z
+  .object({
+    name: z.string().min(1),
+    displayName: z.string().min(1),
+    endpoint: z
+      .string()
+      .url()
+      .refine((u) => u.startsWith('https://'), { message: 'Only HTTPS endpoints are allowed' }),
+    apiKey: z.string().min(1),
+    format: z.enum(['anthropic', 'openai']),
+    authType: z.enum(['bearer', 'x-api-key', 'api-key']).default('bearer'),
+    models: z.record(z.string(), z.string()),
+    headers: z
+      .record(
+        z
+          .string()
+          .regex(/^[a-zA-Z0-9_-]+$/, 'Header name must be alphanumeric')
+          .refine((n) => !/^(host|authorization|x-api-key|api-key|content-length)$/i.test(n), {
+            message: 'Security-critical headers cannot be overridden',
+          }),
+        z.string().refine((v) => !/[\r\n]/.test(v), 'Header value must not contain CRLF'),
+      )
+      .optional(),
+    timeoutMs: z.number().int().min(1000).max(600000).optional(),
+    maxRetries: z.number().int().min(0).max(10).default(2),
+  })
+  .strict()
 
 const circuitBreakerSchema = z.object({
   failureThreshold: z.number().int().min(1).default(5),
   resetTimeoutMs: z.number().int().min(1000).default(30000),
   halfOpenMaxRequests: z.number().int().min(1).default(3),
+})
+
+const rateLimitSchema = z.object({
+  requestsPerWindow: z.number().int().min(1).default(60),
+  windowMs: z.number().int().min(1000).default(60000),
+  maxConcurrent: z.number().int().min(1).default(10),
 })
 
 const routerConfigSchema = z.object({
@@ -35,6 +55,8 @@ const routerConfigSchema = z.object({
   defaultModel: z.string().default('deepseek-v4-flash'),
   port: z.number().int().min(1024).max(65535).default(8788),
   logLevel: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  apiKey: z.string().optional(),
+  rateLimit: rateLimitSchema.default({}),
 })
 
 const configFileSchema = z.object({
@@ -55,7 +77,6 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     format: 'openai',
     authType: 'bearer',
     models: { flash: 'hunyuan-lite', pro: 'hunyuan-pro' },
-    weight: 4,
     timeoutMs: 120000,
     maxRetries: 2,
   },
@@ -67,7 +88,6 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     format: 'anthropic',
     authType: 'x-api-key',
     models: {},
-    weight: 5,
     timeoutMs: 120000,
     maxRetries: 2,
   },
@@ -79,7 +99,6 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     format: 'openai',
     authType: 'bearer',
     models: { flash: 'glm-4-flash', pro: 'glm-4-plus' },
-    weight: 3,
     timeoutMs: 120000,
     maxRetries: 2,
   },
@@ -91,7 +110,6 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     format: 'openai',
     authType: 'bearer',
     models: {},
-    weight: 4,
     timeoutMs: 120000,
     maxRetries: 2,
   },
@@ -103,7 +121,6 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
     format: 'openai',
     authType: 'bearer',
     models: {},
-    weight: 2,
     timeoutMs: 120000,
     maxRetries: 2,
   },
@@ -111,7 +128,9 @@ const DEFAULT_PROVIDERS: ProviderConfig[] = [
 
 // ── Env var interpolation ──
 function resolveEnvVars(value: string): string {
-  return value.replace(/\$([A-Z_]+)/g, (_, name: string) => process.env[name] ?? '')
+  // Only interpolate ${VAR_NAME} syntax — safer, avoids accidental matches.
+  // Bare $VAR is also supported for backward compatibility.
+  return value.replace(/\$\{?([A-Z][A-Z0-9_]+)\}?/g, (_, name: string) => process.env[name] ?? '')
 }
 
 // ── Resolve config path ──
@@ -219,9 +238,9 @@ export function loadConfig(configPath?: string): ConfigFile {
 export function watchConfig(
   onReload: (config: ConfigFile) => void,
   onError: (err: ConfigValidationError) => void,
+  configPath?: string,
 ): () => void {
-  const path = resolveConfigPath()
-  const dir = dirname(path)
+  const path = resolveConfigPath(configPath)
 
   let currentConfig: ConfigFile
   try {
@@ -231,21 +250,25 @@ export function watchConfig(
     return () => {}
   }
 
-  const watcher = watch(dir, { persistent: false }, (_eventType, filename) => {
-    if (filename && !filename.endsWith('.json')) return
-    try {
-      const newConfig = loadConfig(path)
-      if (JSON.stringify(newConfig) !== JSON.stringify(currentConfig)) {
-        logger.info('Configuration change detected, reloading...')
-        currentConfig = newConfig
-        onReload(newConfig)
+  let debounceTimer: ReturnType<typeof setTimeout> | undefined
+
+  const watcher = watch(path, { persistent: false }, (_eventType) => {
+    if (debounceTimer) clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+      try {
+        const newConfig = loadConfig(path)
+        if (JSON.stringify(newConfig) !== JSON.stringify(currentConfig)) {
+          logger.info('Configuration change detected, reloading...')
+          currentConfig = newConfig
+          onReload(newConfig)
+        }
+      } catch (err) {
+        if (err instanceof ConfigValidationError) {
+          logger.error({ err }, 'Invalid configuration, keeping previous')
+          onError(err)
+        }
       }
-    } catch (err) {
-      if (err instanceof ConfigValidationError) {
-        logger.error({ err }, 'Invalid configuration, keeping previous')
-        onError(err)
-      }
-    }
+    }, 200)
   })
 
   return () => watcher.close()

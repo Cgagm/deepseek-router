@@ -18,6 +18,7 @@ interface CircuitEntry {
   lastSuccess: number | null
   openedAt: number | null
   halfOpenCount: number
+  pendingRequests: number
   nextRetryAfter: number
 }
 
@@ -56,7 +57,11 @@ export class CircuitBreaker {
         return false
 
       case CircuitState.HalfOpen:
-        return entry.halfOpenCount < this.config.halfOpenMaxRequests
+        if (entry.halfOpenCount + entry.pendingRequests >= this.config.halfOpenMaxRequests) {
+          return false
+        }
+        entry.pendingRequests++
+        return true
 
       default:
         return true
@@ -70,6 +75,7 @@ export class CircuitBreaker {
 
     entry.totalRequests++
     entry.lastSuccess = Date.now()
+    if (entry.pendingRequests > 0) entry.pendingRequests--
 
     if (entry.state === CircuitState.HalfOpen) {
       entry.halfOpenCount++
@@ -92,6 +98,7 @@ export class CircuitBreaker {
     entry.totalRequests++
     entry.totalFailures++
     entry.consecutiveFailures++
+    if (entry.pendingRequests > 0) entry.pendingRequests--
     entry.lastFailure = Date.now()
 
     if (entry.state === CircuitState.HalfOpen || entry.state === CircuitState.Closed) {
@@ -153,6 +160,7 @@ export class CircuitBreaker {
         lastSuccess: null,
         openedAt: null,
         halfOpenCount: 0,
+        pendingRequests: 0,
         nextRetryAfter: 0,
       })
     }

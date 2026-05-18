@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'fs'
 import { resolve, join } from 'path'
-import { loadConfig } from '../src/config/loader.js'
+import { loadConfig, watchConfig } from '../src/config/loader.js'
 import { ConfigValidationError } from '../src/types/index.js'
 
 const tmpDir = resolve(process.cwd(), '__tests__/__tmp__')
@@ -73,7 +73,6 @@ describe('loadConfig', () => {
     expect(config.router.defaultModel).toBe('deepseek-v4-flash')
 
     const provider = config.providers[0]!
-    expect(provider.weight).toBe(5)
     expect(provider.timeoutMs).toBe(120000)
     expect(provider.maxRetries).toBe(2)
   })
@@ -266,5 +265,204 @@ describe('loadConfig', () => {
     expect(config.router.circuitBreaker.failureThreshold).toBe(10)
     expect(config.router.circuitBreaker.resetTimeoutMs).toBe(60000)
     expect(config.router.circuitBreaker.halfOpenMaxRequests).toBe(5)
+  })
+
+  it('warns about providers with API keys not in providerOrder (loads anyway)', () => {
+    // Provider "tencent" has an API key but is NOT in providerOrder
+    const path = writeConfig('unordered.json', {
+      providers: [
+        {
+          name: 'deepseek',
+          displayName: 'DeepSeek',
+          endpoint: 'https://api.deepseek.com/test',
+          apiKey: 'sk-deepseek',
+          format: 'anthropic',
+          models: {},
+        },
+        {
+          name: 'tencent',
+          displayName: 'Tencent',
+          endpoint: 'https://api.tencent.com/test',
+          apiKey: 'sk-tencent',
+          format: 'openai',
+          models: {},
+        },
+      ],
+      router: { providerOrder: ['deepseek'] },
+    })
+
+    // Should not throw — just warns
+    const config = loadConfig(path)
+    expect(config.providers).toHaveLength(2)
+    expect(config.router.providerOrder).toEqual(['deepseek'])
+  })
+})
+
+describe('watchConfig', () => {
+  it('detects file changes and calls onReload with new config', async () => {
+    const path = writeConfig('watch.json', validConfig())
+    process.env.DEEPSEEK_ROUTER_CONFIG = path
+    const onReload = vi.fn()
+    const onError = vi.fn()
+
+    const closer = watchConfig(onReload, onError)
+
+    // Wait for watcher setup
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Modify the config file — change port
+    writeFileSync(path, JSON.stringify(validConfig({ port: 9090 }), null, 2))
+
+    // Wait for the watcher to detect change
+    await new Promise((r) => setTimeout(r, 500))
+
+    expect(onReload).toHaveBeenCalledTimes(1)
+    const reloadedConfig = onReload.mock.calls[0]?.[0]
+    expect(reloadedConfig?.router?.port).toBe(9090)
+    expect(onError).not.toHaveBeenCalled()
+
+    closer()
+    delete process.env.DEEPSEEK_ROUTER_CONFIG
+  })
+
+  it('handles invalid config after reload gracefully via onError', async () => {
+    const path = writeConfig('watch-invalid.json', validConfig())
+    process.env.DEEPSEEK_ROUTER_CONFIG = path
+    const onReload = vi.fn()
+    const onError = vi.fn()
+
+    const closer = watchConfig(onReload, onError)
+
+    // Wait for watcher setup
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Write invalid config (bad provider format)
+    writeFileSync(
+      path,
+      JSON.stringify(
+        {
+          providers: [
+            {
+              name: 'deepseek',
+              displayName: 'DS',
+              endpoint: 'not-a-url',
+              apiKey: 'key',
+              format: 'bad-format',
+              models: {},
+            },
+          ],
+          router: { providerOrder: ['deepseek'] },
+        },
+        null,
+        2,
+      ),
+    )
+
+    // Wait for watcher to detect change
+    await new Promise((r) => setTimeout(r, 500))
+
+    expect(onError).toHaveBeenCalled()
+    expect(onError.mock.calls[0]?.[0]).toBeInstanceOf(ConfigValidationError)
+    // onReload should NOT be called for invalid config
+    expect(onReload).not.toHaveBeenCalled()
+
+    closer()
+    delete process.env.DEEPSEEK_ROUTER_CONFIG
+  })
+
+  it('does not call onReload when config has not changed', async () => {
+    const path = writeConfig('watch-unchanged.json', validConfig())
+    process.env.DEEPSEEK_ROUTER_CONFIG = path
+    const onReload = vi.fn()
+    const onError = vi.fn()
+
+    const closer = watchConfig(onReload, onError)
+
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Write the same content again
+    writeFileSync(path, JSON.stringify(validConfig(), null, 2))
+
+    await new Promise((r) => setTimeout(r, 500))
+
+    // onReload should NOT be called since JSON is identical
+    expect(onReload).not.toHaveBeenCalled()
+    expect(onError).not.toHaveBeenCalled()
+
+    closer()
+    delete process.env.DEEPSEEK_ROUTER_CONFIG
+  })
+
+  it('returns a close function that stops the watcher', async () => {
+    const path = writeConfig('watch-close.json', validConfig())
+    process.env.DEEPSEEK_ROUTER_CONFIG = path
+    const onReload = vi.fn()
+    const onError = vi.fn()
+
+    const closer = watchConfig(onReload, onError)
+
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Close the watcher
+    closer()
+
+    // Wait a bit
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Modify file — should not trigger callbacks since watcher is closed
+    writeFileSync(path, JSON.stringify(validConfig({ port: 9999 }), null, 2))
+
+    await new Promise((r) => setTimeout(r, 500))
+
+    expect(onReload).not.toHaveBeenCalled()
+    expect(onError).not.toHaveBeenCalled()
+
+    delete process.env.DEEPSEEK_ROUTER_CONFIG
+  })
+
+  it('ignores non-JSON file changes in the watched directory', async () => {
+    const path = writeConfig('watch-nonjson.json', validConfig())
+    process.env.DEEPSEEK_ROUTER_CONFIG = path
+    const onReload = vi.fn()
+    const onError = vi.fn()
+
+    const closer = watchConfig(onReload, onError)
+
+    await new Promise((r) => setTimeout(r, 200))
+
+    // Write a non-JSON file in the same directory
+    writeFileSync(join(tmpDir, 'notes.txt'), 'hello')
+
+    await new Promise((r) => setTimeout(r, 500))
+
+    // onReload should NOT be called for non-JSON files
+    expect(onReload).not.toHaveBeenCalled()
+    expect(onError).not.toHaveBeenCalled()
+
+    closer()
+    delete process.env.DEEPSEEK_ROUTER_CONFIG
+  })
+
+  it('calls onError when initial config load fails', () => {
+    // Write invalid config to a known path
+    const path = join(tmpDir, 'watch-bad-init.json')
+    writeFileSync(path, '{invalid json')
+    process.env.DEEPSEEK_ROUTER_CONFIG = path
+    const onReload = vi.fn()
+    const onError = vi.fn()
+
+    const closer = watchConfig(onReload, onError)
+
+    // onError should be called immediately with ConfigValidationError
+    expect(onError).toHaveBeenCalledTimes(1)
+    expect(onError.mock.calls[0]?.[0]).toBeInstanceOf(ConfigValidationError)
+    expect(onReload).not.toHaveBeenCalled()
+
+    // Should return a no-op closer function
+    expect(typeof closer).toBe('function')
+    // Calling closer should not throw
+    expect(() => closer()).not.toThrow()
+
+    delete process.env.DEEPSEEK_ROUTER_CONFIG
   })
 })

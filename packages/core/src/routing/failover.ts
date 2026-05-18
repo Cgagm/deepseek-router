@@ -17,6 +17,7 @@ export interface RoutedRequest {
   path: string
   headers: Record<string, string>
   body: Buffer
+  signal?: AbortSignal
 }
 
 export type RequestPreparer = (
@@ -78,18 +79,23 @@ export class FailoverRouter {
 
       try {
         const prepared = preparer(body, provider)
-        const routed: RoutedRequest = { ...prepared, provider }
+        const controller = new AbortController()
+        const routed: RoutedRequest = { ...prepared, provider, signal: controller.signal }
+
+        const timeoutMs = provider.timeoutMs ?? config.globalTimeoutMs
+        let timer: ReturnType<typeof setTimeout> | undefined
 
         const result = await Promise.race([
           requestFn(routed),
-          new Promise<never>((_, reject) =>
-            setTimeout(
-              () => reject(new ProviderTimeoutError(providerName, 'Request timed out')),
-              provider.timeoutMs ?? config.globalTimeoutMs,
-            ),
-          ),
+          new Promise<never>((_, reject) => {
+            timer = setTimeout(() => {
+              controller.abort()
+              reject(new ProviderTimeoutError(providerName, 'Request timed out'))
+            }, timeoutMs)
+          }),
         ])
 
+        clearTimeout(timer)
         this.circuitBreaker.recordSuccess(providerName)
         logger.debug({ provider: providerName }, `Request succeeded via ${provider.displayName}`)
         return { result, provider: providerName }
@@ -117,8 +123,8 @@ export class FailoverRouter {
     // All providers exhausted
     const activeProviders = order
       .map((n) => this.providerMap.get(n))
-      .filter(Boolean)
-      .map((p) => p!.name)
+      .filter((p): p is ProviderConfig => !!p)
+      .map((p) => p.name)
 
     throw new AllProvidersExhaustedError(
       activeProviders.map((name) => {

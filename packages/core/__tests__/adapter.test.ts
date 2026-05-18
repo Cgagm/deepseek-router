@@ -14,7 +14,6 @@ const openaiProvider: ProviderConfig = {
   format: 'openai',
   authType: 'bearer',
   models: { 'deepseek-v4-flash': 'hunyuan-lite' },
-  weight: 5,
   timeoutMs: 120000,
   maxRetries: 2,
 }
@@ -27,7 +26,6 @@ const anthropicProvider: ProviderConfig = {
   format: 'anthropic',
   authType: 'x-api-key',
   models: { 'deepseek-v4-flash': 'deepseek-chat' },
-  weight: 5,
   timeoutMs: 120000,
   maxRetries: 2,
 }

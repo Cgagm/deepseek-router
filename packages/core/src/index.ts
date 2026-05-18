@@ -17,6 +17,10 @@ export type {
   RouterConfig,
   AnthropicRequest,
   AnthropicMessage,
+  AnthropicContentBlock,
+  AnthropicTool,
+  AnthropicToolChoice,
+  ApiFormat,
   ProviderHealth,
   RouterMetrics,
 } from './types/index.js'
@@ -28,7 +32,9 @@ export type { ConfigFile } from './config/loader.js'
 // Routing
 export { CircuitBreaker } from './routing/circuit-breaker.js'
 export { FailoverRouter } from './routing/failover.js'
-export type { RoutedRequest } from './routing/failover.js'
+export type { RoutedRequest, RequestPreparer } from './routing/failover.js'
+export { RateLimiter, DEFAULT_RATE_LIMIT } from './routing/rate-limiter.js'
+export type { RateLimiterConfig } from './routing/rate-limiter.js'
 
 // Providers
 export {
@@ -45,5 +51,6 @@ export { SSEProcessor, openAIChunkToAnthropicEvents } from './server/stream.js'
 // Observability
 export { createLogger, setLogLevel, getRootLogger } from './observability/logger.js'
 export { getHealthReport, healthReportToJson } from './observability/health.js'
-export type { HealthReport } from './observability/health.js'
+export type { HealthReport, ProviderHealthEntry } from './observability/health.js'
 export { MetricsCollector } from './observability/metrics.js'
+export type { HealthSnapshot } from './observability/metrics.js'

@@ -1,6 +1,7 @@
 import { createLogger } from '../observability/logger.js'
 
 const logger = createLogger('stream')
+const MAX_BUFFER_SIZE = 1 * 1024 * 1024 // 1MB
 
 interface StreamState {
   started: boolean
@@ -166,6 +167,13 @@ export class SSEProcessor {
   feed(chunk: Buffer): string[] {
     const output: string[] = []
     this.buffer += chunk.toString()
+    if (this.buffer.length > MAX_BUFFER_SIZE) {
+      const err = new Error(`SSE buffer size exceeded (${this.buffer.length} > ${MAX_BUFFER_SIZE})`)
+      logger.error({ bufferSize: this.buffer.length }, 'SSE buffer size exceeded')
+      this.buffer = ''
+      this.state = createStreamState()
+      throw err
+    }
 
     const lines = this.buffer.split('\n')
     // Last element may be incomplete, keep in buffer

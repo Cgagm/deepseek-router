@@ -1,4 +1,26 @@
 import pino from 'pino'
+import { createRequire } from 'node:module'
+
+function tryGetTransport() {
+  if (!process.stdout.isTTY) return {}
+  try {
+    // pino-pretty is an optional dependency — only used in dev/TTY mode.
+    // If it's not installed, fall back to plain JSON logging.
+    createRequire(import.meta.url).resolve('pino-pretty')
+    return {
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss',
+          ignore: 'pid,hostname',
+        },
+      },
+    }
+  } catch {
+    return {}
+  }
+}
 
 export function createLogger(name: string, level: string = 'info'): pino.Logger {
   return pino({
@@ -10,20 +32,7 @@ export function createLogger(name: string, level: string = 'info'): pino.Logger 
       },
     },
     timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
-    // In production (non-TTY), emit JSON to stderr
-    // In development (TTY), use pretty printing
-    ...(process.stdout.isTTY
-      ? {
-          transport: {
-            target: 'pino-pretty',
-            options: {
-              colorize: true,
-              translateTime: 'HH:MM:ss',
-              ignore: 'pid,hostname',
-            },
-          },
-        }
-      : {}),
+    ...tryGetTransport(),
   })
 }
 

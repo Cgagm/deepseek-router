@@ -338,5 +338,135 @@ describe('SSEProcessor', () => {
 
       expect(events.some((e) => e.includes('message_start'))).toBe(true)
     })
+
+    it('ignores comments and empty lines mixed with data', () => {
+      const processor = new SSEProcessor('test-model')
+
+      const events = processor.feed(
+        Buffer.from(
+          ':comment line\n' +
+            '\n' +
+            'data: {"choices":[{"delta":{"content":"X"}}]}\n' +
+            ': another comment\n',
+        ),
+      )
+
+      expect(events.some((e) => e.includes('content_block_delta'))).toBe(true)
+    })
+  })
+
+  describe('tool_calls closing', () => {
+    it('emits content_block_stop for open tool blocks on finish_reason', () => {
+      const processor = new SSEProcessor('test-model')
+
+      // Start a tool call
+      processor.feed(
+        Buffer.from(
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_1","function":{"name":"search","arguments":"{\\"q\\":\\"test\\"}"}}]}}]}\n',
+        ),
+      )
+
+      // Now finish with tool_calls reason — should close the tool block
+      const events = processor.feed(
+        Buffer.from(
+          'data: {"choices":[{"finish_reason":"tool_calls"}],"usage":{"completion_tokens":10}}\n',
+        ),
+      )
+
+      const blockStops = events.filter((e) => e.includes('content_block_stop'))
+      expect(blockStops.length).toBeGreaterThanOrEqual(1)
+      // Should include a tool_use content_block_stop
+      expect(blockStops.some((e) => !e.includes('"text"'))).toBe(true)
+    })
+
+    it('closes both text and tool blocks on finish_reason', () => {
+      const processor = new SSEProcessor('test-model')
+
+      // Start with text
+      processor.feed(Buffer.from('data: {"choices":[{"delta":{"content":"Hello"}}]}\n'))
+
+      // Then a tool call in the same message
+      processor.feed(
+        Buffer.from(
+          'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"call_2","function":{"name":"calc","arguments":"{}"}}]}}]}\n',
+        ),
+      )
+
+      // Finish
+      const events = processor.feed(
+        Buffer.from(
+          'data: {"choices":[{"finish_reason":"tool_calls"}],"usage":{"completion_tokens":5}}\n',
+        ),
+      )
+
+      const blockStops = events.filter((e) => e.includes('content_block_stop'))
+      // Should close at least text block and tool block
+      expect(blockStops.length).toBeGreaterThanOrEqual(2)
+    })
+  })
+
+  describe('invalid SSE data', () => {
+    it('silently ignores unparseable JSON in data lines', () => {
+      const processor = new SSEProcessor('test-model')
+
+      // Send invalid JSON — should not throw, just produce no events
+      const events = processor.feed(Buffer.from('data: {not valid json}\n'))
+      expect(events).toHaveLength(0)
+    })
+
+    it('continues processing after invalid JSON line', () => {
+      const processor = new SSEProcessor('test-model')
+
+      // Invalid line
+      processor.feed(Buffer.from('data: {broken}\n'))
+
+      // Valid line after — should work normally
+      const events = processor.feed(
+        Buffer.from('data: {"choices":[{"delta":{"content":"Recovered"}}]}\n'),
+      )
+
+      expect(events.some((e) => e.includes('Recovered'))).toBe(true)
+    })
+  })
+
+  describe('multiple [DONE] signals', () => {
+    it('handles multiple consecutive [DONE] signals gracefully', () => {
+      const processor = new SSEProcessor('test-model')
+
+      // Start a message so stream is started
+      processor.feed(Buffer.from('data: {"choices":[{"delta":{"content":"Hi"}}]}\n'))
+
+      // First [DONE] — should emit message_stop
+      const events1 = processor.feed(Buffer.from('data: [DONE]\n'))
+      expect(events1.some((e) => e.includes('message_stop'))).toBe(true)
+
+      // Second [DONE] — should NOT emit another message_stop
+      const events2 = processor.feed(Buffer.from('data: [DONE]\n'))
+      const stopEvents = events2.filter((e) => e.includes('message_stop'))
+      expect(stopEvents).toHaveLength(0)
+
+      // Third [DONE] — still no message_stop
+      const events3 = processor.feed(Buffer.from('data: [DONE]\n'))
+      const stopEvents3 = events3.filter((e) => e.includes('message_stop'))
+      expect(stopEvents3).toHaveLength(0)
+    })
+  })
+
+  describe('empty buffer edge cases', () => {
+    it('handles empty chunk input without error', () => {
+      const processor = new SSEProcessor('test-model')
+
+      // Feed empty buffer
+      const events = processor.feed(Buffer.from(''))
+      expect(events).toHaveLength(0)
+    })
+
+    it('handles data line with no content after data: prefix', () => {
+      const processor = new SSEProcessor('test-model')
+
+      const events = processor.feed(Buffer.from('data: \n'))
+      // Empty data line — should not throw, may produce no events
+      expect(Array.isArray(events)).toBe(true)
+    })
   })
 })

@@ -18,9 +18,7 @@ export interface ProviderConfig {
   models: Record<string, string>
   /** Extra headers to send */
   headers?: Record<string, string>
-  /** Weight for weighted random selection (1-10, default 5) */
-  weight?: number
-  /** Request timeout in ms (default: 120000) */
+  /** Request timeout in ms (default: inherits from globalTimeoutMs) */
   timeoutMs?: number
   /** Max retries for transient errors (default: 2) */
   maxRetries?: number
@@ -55,6 +53,17 @@ export interface RouterConfig {
   port: number
   /** Log level */
   logLevel: 'debug' | 'info' | 'warn' | 'error'
+  /** Optional API key to protect the proxy endpoint. If set, requests must include this key. */
+  apiKey?: string
+  /** Rate limiting configuration */
+  rateLimit?: {
+    /** Maximum requests per window per IP */
+    requestsPerWindow?: number
+    /** Window duration in ms (default: 60000) */
+    windowMs?: number
+    /** Maximum total concurrent requests */
+    maxConcurrent?: number
+  }
 }
 
 // ── Health ──
@@ -109,12 +118,15 @@ export class ProviderAuthError extends RouterError {
 
 export class ProviderRateLimitError extends RouterError {
   readonly kind = 'rate_limit' as const
+  readonly retryAfter: number | null
   constructor(
     readonly provider: string,
     message: string,
+    retryAfter?: number,
   ) {
     super(`${provider}: ${message}`)
     this.name = 'ProviderRateLimitError'
+    this.retryAfter = retryAfter ?? null
   }
 }
 
@@ -143,8 +155,9 @@ export class AllProvidersExhaustedError extends RouterError {
   }
 }
 
-export class ConfigValidationError extends Error {
+export class ConfigValidationError extends RouterError {
   readonly kind = 'config_validation' as const
+  readonly provider = 'system'
   readonly field?: string
   constructor(message: string, field?: string) {
     super(message)
