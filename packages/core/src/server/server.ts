@@ -249,7 +249,6 @@ export function createServer(options: ProxyServerOptions): http.Server {
           requestAborted = true
           metrics.requestCompleted('unknown')
           if (rateLimiter) rateLimiter.requestCompleted()
-          req.destroy()
           res.writeHead(413, { 'Content-Type': 'application/json' })
           res.end(
             JSON.stringify({
@@ -257,6 +256,7 @@ export function createServer(options: ProxyServerOptions): http.Server {
               error: { type: 'invalid_request_error', message: 'Request body too large' },
             }),
           )
+          req.destroy()
           return
         }
         body += chunk.toString()
