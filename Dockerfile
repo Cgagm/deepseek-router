@@ -17,24 +17,14 @@ COPY packages/cli/ packages/cli/
 
 RUN pnpm run build
 
+# Prune production deps for the CLI, resolving workspace:* to actual deps
+RUN pnpm --filter=deepseek-router --prod deploy /prod
+
 # -- Production stage --
 FROM node:20-alpine AS runtime
 
-RUN corepack enable && corepack prepare pnpm@9 --activate
-
+COPY --from=build /prod /app
 WORKDIR /app
-
-COPY --from=build /app/packages/core/dist/ /app/packages/core/dist/
-COPY --from=build /app/packages/core/package.json /app/packages/core/
-COPY --from=build /app/packages/cli/dist/ /app/packages/cli/dist/
-COPY --from=build /app/packages/cli/package.json /app/packages/cli/
-
-# Only install production deps for the CLI (which pulls core as workspace dep)
-WORKDIR /app/packages/cli
-COPY pnpm-workspace.yaml /app/
-COPY packages/core/package.json /app/packages/core/
-COPY pnpm-lock.yaml /app/
-RUN pnpm install --frozen-lockfile --prod
 
 EXPOSE 8788
 
