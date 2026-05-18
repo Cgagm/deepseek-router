@@ -1,10 +1,16 @@
 {
-  "name": "deepseek-router",
-  "version": "1.0.0",
+  "name": "@cgagm/deepseek-router",
+  "version": "1.0.1",
   "description": "Production-grade multi-provider proxy for Claude Code — 5 Chinese AI providers, circuit breaking, automatic failover",
   "license": "MIT",
   "author": "Chen Gang",
-  "repository": "github:Cgagm/deepseek-router",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cgagm/deepseek-router.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "keywords": [
     "claude-code",
     "deepseek",
@@ -19,7 +25,7 @@
   ],
   "type": "module",
   "bin": {
-    "deepseek-router": "./dist/cli.js"
+    "deepseek-router": "dist/cli.js"
   },
   "files": [
     "dist"
@@ -30,7 +36,7 @@
     "clean": "rm -rf dist/"
   },
   "dependencies": {
-    "@deepseek-router/core": "workspace:*"
+    "@cgagm/deepseek-router-core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20.12.0",

@@ -23,7 +23,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@deepseek-router/core':
+      '@cgagm/deepseek-router-core':
         specifier: workspace:*
         version: link:../core
     devDependencies:
