@@ -31,7 +31,11 @@ export { FailoverRouter } from './routing/failover.js'
 export type { RoutedRequest } from './routing/failover.js'
 
 // Providers
-export { anthropicToOpenAI, openAIToAnthropic, prepareAnthropicRequest } from './providers/adapter.js'
+export {
+  anthropicToOpenAI,
+  openAIToAnthropic,
+  prepareAnthropicRequest,
+} from './providers/adapter.js'
 
 // Server
 export { createServer } from './server/server.js'

@@ -154,7 +154,9 @@ describe('anthropicToOpenAI', () => {
       expect(assistantMsg.tool_calls[0].id).toBe('toolu_001')
       expect(assistantMsg.tool_calls[0].type).toBe('function')
       expect(assistantMsg.tool_calls[0].function.name).toBe('search')
-      expect(JSON.parse(assistantMsg.tool_calls[0].function.arguments)).toEqual({ query: 'weather' })
+      expect(JSON.parse(assistantMsg.tool_calls[0].function.arguments)).toEqual({
+        query: 'weather',
+      })
     })
 
     it('handles tool_use without text', () => {

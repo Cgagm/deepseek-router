@@ -158,11 +158,7 @@ describe('openAIChunkToAnthropicEvents', () => {
       toolBlocks: {},
     }
 
-    const events = openAIChunkToAnthropicEvents(
-      { choices: [{ delta: {} }] },
-      'test-model',
-      state,
-    )
+    const events = openAIChunkToAnthropicEvents({ choices: [{ delta: {} }] }, 'test-model', state)
 
     expect(events).toHaveLength(0)
   })
@@ -178,11 +174,7 @@ describe('openAIChunkToAnthropicEvents', () => {
       toolBlocks: {},
     }
 
-    const events = openAIChunkToAnthropicEvents(
-      { choices: [] },
-      'test-model',
-      state,
-    )
+    const events = openAIChunkToAnthropicEvents({ choices: [] }, 'test-model', state)
 
     // No choices, but first chunk still emits message_start
     expect(events).toHaveLength(1)
@@ -209,7 +201,9 @@ describe('SSEProcessor', () => {
 
       // Chunk 2: finish
       const events2 = processor.feed(
-        Buffer.from('data: {"choices":[{"finish_reason":"stop"}],"usage":{"completion_tokens":5}}\n'),
+        Buffer.from(
+          'data: {"choices":[{"finish_reason":"stop"}],"usage":{"completion_tokens":5}}\n',
+        ),
       )
 
       const hasMsgDelta = events2.some((e) => e.includes('message_delta'))
@@ -224,9 +218,7 @@ describe('SSEProcessor', () => {
       const processor = new SSEProcessor('test-model')
 
       // Send one chunk so message_start fires
-      processor.feed(
-        Buffer.from('data: {"choices":[{"delta":{"content":"Hi"}}]}\n'),
-      )
+      processor.feed(Buffer.from('data: {"choices":[{"delta":{"content":"Hi"}}]}\n'))
 
       const events = processor.feed(Buffer.from('data: [DONE]\n'))
       const hasStop = events.some((e) => e.includes('message_stop'))

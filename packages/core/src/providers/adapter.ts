@@ -48,9 +48,7 @@ export function anthropicToOpenAI(
           })
         } else if (block.type === 'tool_result') {
           const content =
-            typeof block.content === 'string'
-              ? block.content
-              : JSON.stringify(block.content)
+            typeof block.content === 'string' ? block.content : JSON.stringify(block.content)
           toolResults.push({
             role: 'tool',
             tool_call_id: block.tool_use_id,
@@ -137,7 +135,10 @@ export function anthropicToOpenAI(
 }
 
 // ── Prepare Anthropic request for native-Anthropic providers ──
-export function prepareAnthropicRequest(body: AnthropicRequest, provider: ProviderConfig): {
+export function prepareAnthropicRequest(
+  body: AnthropicRequest,
+  provider: ProviderConfig,
+): {
   path: string
   headers: Record<string, string>
   body: Buffer

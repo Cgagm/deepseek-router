@@ -154,7 +154,11 @@ describe('FailoverRouter', () => {
   describe('circuit breaker integration', () => {
     it('skips providers with open circuit', async () => {
       // Open circuit for deepseek
-      const strictCb = new CircuitBreaker({ failureThreshold: 1, resetTimeoutMs: 30000, halfOpenMaxRequests: 2 })
+      const strictCb = new CircuitBreaker({
+        failureThreshold: 1,
+        resetTimeoutMs: 30000,
+        halfOpenMaxRequests: 2,
+      })
       strictCb.recordFailure('deepseek') // Opens immediately
 
       const router = new FailoverRouter(providers, config, strictCb)
@@ -170,10 +174,7 @@ describe('FailoverRouter', () => {
 
   describe('provider without apiKey', () => {
     it('skips providers with empty apiKey', async () => {
-      const providersNoKey = [
-        { ...providers[0]!, apiKey: '' },
-        ...providers.slice(1),
-      ]
+      const providersNoKey = [{ ...providers[0]!, apiKey: '' }, ...providers.slice(1)]
       const router = new FailoverRouter(providersNoKey, config, cb)
 
       const requestFn = vi.fn().mockResolvedValue({ ok: true })
@@ -200,9 +201,9 @@ describe('FailoverRouter', () => {
           }),
       )
 
-      await expect(
-        router.execute(testPreparer, requestFn, makeRequest()),
-      ).rejects.toThrow(AllProvidersExhaustedError)
+      await expect(router.execute(testPreparer, requestFn, makeRequest())).rejects.toThrow(
+        AllProvidersExhaustedError,
+      )
     }, 10000)
   })
 
@@ -212,9 +213,9 @@ describe('FailoverRouter', () => {
 
       const requestFn = vi.fn().mockRejectedValue(new Error('fail'))
 
-      await expect(
-        router.execute(testPreparer, requestFn, makeRequest()),
-      ).rejects.toThrow(AllProvidersExhaustedError)
+      await expect(router.execute(testPreparer, requestFn, makeRequest())).rejects.toThrow(
+        AllProvidersExhaustedError,
+      )
     })
 
     it('includes error details in AllProvidersExhaustedError', async () => {
@@ -242,11 +243,7 @@ describe('FailoverRouter', () => {
 
   describe('getActiveProviders', () => {
     it('returns only providers with API keys', () => {
-      const mixedProviders = [
-        { ...providers[0]!, apiKey: '' },
-        providers[1]!,
-        providers[2]!,
-      ]
+      const mixedProviders = [{ ...providers[0]!, apiKey: '' }, providers[1]!, providers[2]!]
       const router = new FailoverRouter(mixedProviders, config, cb)
 
       const active = router.getActiveProviders()

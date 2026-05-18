@@ -1,8 +1,4 @@
-import type {
-  ProviderConfig,
-  RouterConfig,
-  AnthropicRequest,
-} from '../types/index.js'
+import type { ProviderConfig, RouterConfig, AnthropicRequest } from '../types/index.js'
 import { CircuitBreaker } from './circuit-breaker.js'
 import {
   ProviderTimeoutError,
@@ -38,11 +34,7 @@ export class FailoverRouter {
   private circuitBreaker: CircuitBreaker
   private config: RouterConfig
 
-  constructor(
-    providers: ProviderConfig[],
-    config: RouterConfig,
-    circuitBreaker: CircuitBreaker,
-  ) {
+  constructor(providers: ProviderConfig[], config: RouterConfig, circuitBreaker: CircuitBreaker) {
     this.providerMap = new Map(providers.map((p) => [p.name, p]))
     this.order = config.providerOrder.filter((n) => this.providerMap.has(n))
     this.circuitBreaker = circuitBreaker
@@ -99,10 +91,7 @@ export class FailoverRouter {
         ])
 
         this.circuitBreaker.recordSuccess(providerName)
-        logger.debug(
-          { provider: providerName },
-          `Request succeeded via ${provider.displayName}`,
-        )
+        logger.debug({ provider: providerName }, `Request succeeded via ${provider.displayName}`)
         return { result, provider: providerName }
       } catch (err) {
         this.circuitBreaker.recordFailure(providerName)
@@ -138,8 +127,7 @@ export class FailoverRouter {
         const error = errors.find((e) => e.provider === name)
         return {
           provider: name,
-          message:
-            `${state === CircuitState.Open ? '[OPEN] ' : ''}${error?.message ?? 'No attempt'}`,
+          message: `${state === CircuitState.Open ? '[OPEN] ' : ''}${error?.message ?? 'No attempt'}`,
         }
       }),
     )

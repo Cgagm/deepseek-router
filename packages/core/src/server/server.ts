@@ -27,7 +27,10 @@ export function createServer(options: ProxyServerOptions): http.Server {
     // CORS — restrictive by default, allow local development
     res.setHeader('Access-Control-Allow-Origin', 'http://localhost:*')
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-api-key, anthropic-version')
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization, x-api-key, anthropic-version',
+    )
 
     if (req.method === 'OPTIONS') {
       res.writeHead(204)
@@ -38,7 +41,14 @@ export function createServer(options: ProxyServerOptions): http.Server {
     // ── Observability endpoints ──
     if (req.method === 'GET' && req.url === '/health') {
       const providers = router.getActiveProviders()
-      const report = getHealthReport(circuitBreaker, providers, options.metrics.getSnapshot().uptime * 1000 + Date.now() - options.metrics.getSnapshot().uptime * 1000, version)
+      const report = getHealthReport(
+        circuitBreaker,
+        providers,
+        options.metrics.getSnapshot().uptime * 1000 +
+          Date.now() -
+          options.metrics.getSnapshot().uptime * 1000,
+        version,
+      )
       res.writeHead(report.status === 'down' ? 503 : 200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify(report))
       return
@@ -63,7 +73,10 @@ export function createServer(options: ProxyServerOptions): http.Server {
     }
 
     // ── API endpoint ──
-    if (req.method === 'POST' && (req.url === '/v1/messages' || req.url === '/anthropic/messages')) {
+    if (
+      req.method === 'POST' &&
+      (req.url === '/v1/messages' || req.url === '/anthropic/messages')
+    ) {
       metrics.requestStarted()
 
       let body = ''
@@ -77,13 +90,21 @@ export function createServer(options: ProxyServerOptions): http.Server {
           request = JSON.parse(body) as AnthropicRequest
         } catch {
           res.writeHead(400, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'Invalid JSON in request body' } }))
+          res.end(
+            JSON.stringify({
+              type: 'error',
+              error: { type: 'invalid_request_error', message: 'Invalid JSON in request body' },
+            }),
+          )
           metrics.requestCompleted('unknown')
           return
         }
 
         const model = request.model ?? 'deepseek-v4-flash'
-        logger.debug({ model, stream: request.stream, toolCount: request.tools?.length ?? 0 }, 'Incoming request')
+        logger.debug(
+          { model, stream: request.stream, toolCount: request.tools?.length ?? 0 },
+          'Incoming request',
+        )
 
         try {
           const { result, provider } = await router.execute(
@@ -104,7 +125,10 @@ export function createServer(options: ProxyServerOptions): http.Server {
 
           if (result.stream) {
             // Streaming response
-            const httpResult = result as HttpResult & { stream: true; rawStream: http.IncomingMessage }
+            const httpResult = result as HttpResult & {
+              stream: true
+              rawStream: http.IncomingMessage
+            }
             if (result.format === 'anthropic') {
               // Native Anthropic SSE — pass through
               res.writeHead(httpResult.status ?? 200, {
@@ -134,12 +158,19 @@ export function createServer(options: ProxyServerOptions): http.Server {
               })
               httpResult.rawStream.on('error', (err: Error) => {
                 logger.error({ err, provider }, 'Stream error from provider')
-                try { res.end() } catch { /* connection already closed */ }
+                try {
+                  res.end()
+                } catch {
+                  /* connection already closed */
+                }
               })
             }
           } else {
             // Non-streaming response
-            const httpResult = result as HttpResult & { stream: false; body: Record<string, unknown> }
+            const httpResult = result as HttpResult & {
+              stream: false
+              body: Record<string, unknown>
+            }
             if (result.format === 'anthropic') {
               res.writeHead(httpResult.status ?? 200, { 'Content-Type': 'application/json' })
               res.end(JSON.stringify(httpResult.body))
@@ -178,11 +209,29 @@ export function createServer(options: ProxyServerOptions): http.Server {
 ╔══════════════════════════════════════════════════╗
 ║          DeepSeek Router v${version.padEnd(17)}║
 ║          ${'Listening: http://localhost:' + port}${' '.repeat(29 - String(port).length)}║
-║          ${'Providers: ' + router.getActiveProviders().map(p => p.name).join(' → ')}${' '.repeat(Math.max(0, 34 - router.getActiveProviders().map(p => p.name).join(' → ').length))}║
+║          ${
+      'Providers: ' +
+      router
+        .getActiveProviders()
+        .map((p) => p.name)
+        .join(' → ')
+    }${' '.repeat(
+      Math.max(
+        0,
+        34 -
+          router
+            .getActiveProviders()
+            .map((p) => p.name)
+            .join(' → ').length,
+      ),
+    )}║
 ╚══════════════════════════════════════════════════╝
 `
     process.stdout.write('\n' + startupBanner + '\n')
-    logger.info({ port, providers: router.getActiveProviders().map((p) => p.name) }, 'Server started')
+    logger.info(
+      { port, providers: router.getActiveProviders().map((p) => p.name) },
+      'Server started',
+    )
   })
 
   return server
@@ -197,10 +246,7 @@ interface HttpResult {
   rawStream?: http.IncomingMessage
 }
 
-function makeHttpRequest(
-  routed: RoutedRequest,
-  stream: boolean,
-): Promise<HttpResult> {
+function makeHttpRequest(routed: RoutedRequest, stream: boolean): Promise<HttpResult> {
   const { path, headers, body: bodyBuf } = routed
   const endpoint = routed.provider.endpoint
   const url = new URL(endpoint)

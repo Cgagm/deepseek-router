@@ -134,18 +134,14 @@ export function openAIChunkToAnthropicEvents(
       content_filter: 'end_turn',
     }
     const stopReason =
-      finishMap[choice.finish_reason as string] ??
-      (choice.finish_reason as string) ??
-      'end_turn'
+      finishMap[choice.finish_reason as string] ?? (choice.finish_reason as string) ?? 'end_turn'
 
     const usage = chunk.usage as Record<string, number> | undefined
 
     events.push(
       `event: message_delta\ndata: ${JSON.stringify({ type: 'message_delta', delta: { stop_reason: stopReason, stop_sequence: null }, usage: { output_tokens: usage?.completion_tokens ?? 0 } })}\n`,
     )
-    events.push(
-      `event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n`,
-    )
+    events.push(`event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n`)
 
     state.ended = true
   }
@@ -182,9 +178,7 @@ export class SSEProcessor {
       if (dataStr === '[DONE]') {
         if (this.state.started && !this.state.ended) {
           this.state.ended = true
-          output.push(
-            `event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n`,
-          )
+          output.push(`event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n`)
         }
         continue
       }
@@ -205,9 +199,7 @@ export class SSEProcessor {
   end(): string[] {
     if (this.state.started && !this.state.ended) {
       this.state.ended = true
-      return [
-        `event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n`,
-      ]
+      return [`event: message_stop\ndata: ${JSON.stringify({ type: 'message_stop' })}\n`]
     }
     return []
   }

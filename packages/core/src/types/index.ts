@@ -84,7 +84,10 @@ export abstract class RouterError extends Error {
 
 export class ProviderTimeoutError extends RouterError {
   readonly kind = 'timeout' as const
-  constructor(readonly provider: string, message: string) {
+  constructor(
+    readonly provider: string,
+    message: string,
+  ) {
     super(`${provider}: ${message}`)
     this.name = 'ProviderTimeoutError'
   }
@@ -93,7 +96,11 @@ export class ProviderTimeoutError extends RouterError {
 export class ProviderAuthError extends RouterError {
   readonly kind = 'auth' as const
   readonly statusCode: number
-  constructor(readonly provider: string, statusCode: number, message: string) {
+  constructor(
+    readonly provider: string,
+    statusCode: number,
+    message: string,
+  ) {
     super(`${provider}: ${message}`)
     this.name = 'ProviderAuthError'
     this.statusCode = statusCode
@@ -102,7 +109,10 @@ export class ProviderAuthError extends RouterError {
 
 export class ProviderRateLimitError extends RouterError {
   readonly kind = 'rate_limit' as const
-  constructor(readonly provider: string, message: string) {
+  constructor(
+    readonly provider: string,
+    message: string,
+  ) {
     super(`${provider}: ${message}`)
     this.name = 'ProviderRateLimitError'
   }
@@ -111,7 +121,11 @@ export class ProviderRateLimitError extends RouterError {
 export class ProviderServerError extends RouterError {
   readonly kind = 'server_error' as const
   readonly statusCode: number
-  constructor(readonly provider: string, statusCode: number, message: string) {
+  constructor(
+    readonly provider: string,
+    statusCode: number,
+    message: string,
+  ) {
     super(`${provider}: ${message}`)
     this.name = 'ProviderServerError'
     this.statusCode = statusCode

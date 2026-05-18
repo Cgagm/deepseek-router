@@ -227,9 +227,7 @@ export function watchConfig(
   try {
     currentConfig = loadConfig(path)
   } catch (err) {
-    onError(
-      err instanceof ConfigValidationError ? err : new ConfigValidationError(String(err)),
-    )
+    onError(err instanceof ConfigValidationError ? err : new ConfigValidationError(String(err)))
     return () => {}
   }
 

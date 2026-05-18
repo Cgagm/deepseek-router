@@ -45,9 +45,7 @@ export class MetricsCollector {
         totalRequests: h.totalRequests,
         totalFailures: h.totalFailures,
         failureRate:
-          h.totalRequests > 0
-            ? ((h.totalFailures / h.totalRequests) * 100).toFixed(1) + '%'
-            : '0%',
+          h.totalRequests > 0 ? ((h.totalFailures / h.totalRequests) * 100).toFixed(1) + '%' : '0%',
         lastSuccess: h.lastSuccess,
         lastFailure: h.lastFailure,
       })),
