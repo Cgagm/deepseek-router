@@ -1,12 +1,29 @@
 {
-  "name": "@deepseek-router/cli",
+  "name": "deepseek-router",
   "version": "1.0.0",
-  "description": "CLI entry point for DeepSeek Router — start the proxy with one command",
+  "description": "Production-grade multi-provider proxy for Claude Code — 5 Chinese AI providers, circuit breaking, automatic failover",
   "license": "MIT",
+  "author": "Chen Gang",
+  "repository": "github:Cgagm/deepseek-router",
+  "keywords": [
+    "claude-code",
+    "deepseek",
+    "ai-proxy",
+    "failover",
+    "circuit-breaker",
+    "anthropic",
+    "openai",
+    "llm-router",
+    "claude",
+    "claude-code-router"
+  ],
   "type": "module",
   "bin": {
     "deepseek-router": "./dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
@@ -18,5 +35,8 @@
   "devDependencies": {
     "@types/node": "^20.12.0",
     "typescript": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -23,7 +23,7 @@
     "dev": "turbo run dev --parallel",
     "test": "turbo run test",
     "lint": "turbo run lint",
-    "start": "turbo run build --filter=@deepseek-router/cli && node packages/cli/dist/cli.js",
+    "start": "turbo run build --filter=deepseek-router && node packages/cli/dist/cli.js",
     "format": "prettier --write \"packages/**/*.ts\"",
     "format:check": "prettier --check \"packages/**/*.ts\"",
     "typecheck": "turbo run typecheck",
