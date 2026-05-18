@@ -1,0 +1,86 @@
+{
+  "$schema": "https://raw.githubusercontent.com/chengang/deepseek-router/main/schema.json",
+  "providers": [
+    {
+      "name": "deepseek",
+      "displayName": "DeepSeek",
+      "endpoint": "https://api.deepseek.com/anthropic/messages",
+      "apiKey": "$DEEPSEEK_API_KEY",
+      "format": "anthropic",
+      "authType": "x-api-key",
+      "models": {
+        "deepseek-v4-flash": "deepseek-chat",
+        "deepseek-v4-pro": "deepseek-reasoner"
+      },
+      "weight": 5,
+      "timeoutMs": 120000,
+      "maxRetries": 2
+    },
+    {
+      "name": "tencent",
+      "displayName": "Tencent Hunyuan",
+      "endpoint": "https://api.hunyuan.cloud.tencent.com/v1/chat/completions",
+      "apiKey": "$TENCENT_API_KEY",
+      "format": "openai",
+      "authType": "bearer",
+      "models": {
+        "deepseek-v4-flash": "hunyuan-lite",
+        "deepseek-v4-pro": "hunyuan-pro"
+      },
+      "weight": 4,
+      "timeoutMs": 120000,
+      "maxRetries": 2
+    },
+    {
+      "name": "zhipu",
+      "displayName": "Zhipu GLM",
+      "endpoint": "https://open.bigmodel.cn/api/paas/v4/chat/completions",
+      "apiKey": "$ZHIPU_API_KEY",
+      "format": "openai",
+      "authType": "bearer",
+      "models": {
+        "deepseek-v4-flash": "glm-4-flash",
+        "deepseek-v4-pro": "glm-4-plus"
+      },
+      "weight": 3,
+      "timeoutMs": 120000,
+      "maxRetries": 2
+    },
+    {
+      "name": "aliyun",
+      "displayName": "Alibaba Bailian",
+      "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+      "apiKey": "$ALIYUN_API_KEY",
+      "format": "openai",
+      "authType": "bearer",
+      "models": {},
+      "weight": 4,
+      "timeoutMs": 120000,
+      "maxRetries": 2
+    },
+    {
+      "name": "volcengine",
+      "displayName": "ByteDance Volcengine",
+      "endpoint": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+      "apiKey": "$VOLCENGINE_API_KEY",
+      "format": "openai",
+      "authType": "bearer",
+      "models": {},
+      "weight": 2,
+      "timeoutMs": 120000,
+      "maxRetries": 2
+    }
+  ],
+  "router": {
+    "providerOrder": ["deepseek", "tencent", "zhipu", "aliyun", "volcengine"],
+    "circuitBreaker": {
+      "failureThreshold": 5,
+      "resetTimeoutMs": 30000,
+      "halfOpenMaxRequests": 3
+    },
+    "globalTimeoutMs": 120000,
+    "defaultModel": "deepseek-v4-flash",
+    "port": 8788,
+    "logLevel": "info"
+  }
+}

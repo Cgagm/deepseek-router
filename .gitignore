@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.turbo/
+coverage/
+.env
+.env.local
+router.config.json
+.deepseek-router.json
+*.log
+.DS_Store
+Thumbs.db

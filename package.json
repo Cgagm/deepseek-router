@@ -1,0 +1,40 @@
+{
+  "name": "deepseek-router",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade multi-provider proxy for Claude Code — 5 Chinese AI providers with circuit breaking, automatic failover, and zero-downtime configuration",
+  "keywords": [
+    "claude-code",
+    "deepseek",
+    "ai-proxy",
+    "failover",
+    "circuit-breaker",
+    "anthropic",
+    "openai",
+    "llm-router"
+  ],
+  "license": "MIT",
+  "author": "Chen Gang",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"packages/**/*.ts\"",
+    "format:check": "prettier --check \"packages/**/*.ts\"",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean",
+    "changeset": "changeset",
+    "release": "turbo run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.0",
+    "prettier": "^3.2.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  },
+  "packageManager": "pnpm@9.0.0"
+}
