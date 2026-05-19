@@ -303,7 +303,11 @@ describe('watchConfig', () => {
 
   afterEach(() => {
     if (currentCloser) {
-      try { currentCloser() } catch { /* already closed */ }
+      try {
+        currentCloser()
+      } catch {
+        /* already closed */
+      }
       currentCloser = null
     }
   })
