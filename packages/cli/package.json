@@ -1,6 +1,6 @@
 {
   "name": "deepseek-router",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Production-grade multi-provider proxy for Claude Code — 5 Chinese AI providers, circuit breaking, automatic failover",
   "license": "MIT",
   "author": "Chen Gang",
