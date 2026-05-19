@@ -182,7 +182,7 @@ export interface AnthropicRequest {
   messages: AnthropicMessage[]
   max_tokens: number
   stream?: boolean
-  system?: string
+  system?: string | AnthropicContentBlock[]
   temperature?: number
   top_p?: number
   top_k?: number

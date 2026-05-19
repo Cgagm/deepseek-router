@@ -67,7 +67,7 @@ const requestSchema = z.object({
   messages: z.array(messageSchema).min(1),
   max_tokens: z.number().int().min(1),
   stream: z.boolean().optional(),
-  system: z.string().optional(),
+  system: z.union([z.string(), z.array(contentBlockSchema)]).optional(),
   temperature: z.number().optional(),
   top_p: z.number().optional(),
   top_k: z.number().optional(),
@@ -177,8 +177,10 @@ export function createServer(options: ProxyServerOptions): http.Server {
       return
     }
 
+    const pathname = (req.url ?? '/').split('?')[0]
+
     // ── Observability endpoints ──
-    if (req.method === 'GET' && req.url === '/health') {
+    if (req.method === 'GET' && pathname === '/health') {
       if (!checkAuth(req, res)) return
       const providers = router.getActiveProviders()
       const report = getHealthReport(circuitBreaker, providers, serverStartTime, version)
@@ -187,14 +189,14 @@ export function createServer(options: ProxyServerOptions): http.Server {
       return
     }
 
-    if (req.method === 'GET' && req.url === '/metrics') {
+    if (req.method === 'GET' && pathname === '/metrics') {
       if (!checkAuth(req, res)) return
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
       res.end(options.metrics.getPrometheusFormat())
       return
     }
 
-    if (req.method === 'GET' && req.url === '/v1/models') {
+    if (req.method === 'GET' && pathname === '/v1/models') {
       if (!checkAuth(req, res)) return
       const providers = router.getActiveProviders()
       const models = new Set<string>()
@@ -210,7 +212,7 @@ export function createServer(options: ProxyServerOptions): http.Server {
     }
 
     // Claude Code calls this for token counting during context management
-    if (req.method === 'POST' && req.url === '/v1/messages/count_tokens') {
+    if (req.method === 'POST' && pathname === '/v1/messages/count_tokens') {
       if (!checkAuth(req, res)) return
       try {
         const raw = await readBody(req)
@@ -232,7 +234,7 @@ export function createServer(options: ProxyServerOptions): http.Server {
       return
     }
 
-    if ((req.method === 'GET' || req.method === 'HEAD') && req.url === '/') {
+    if ((req.method === 'GET' || req.method === 'HEAD') && pathname === '/') {
       const providers = router.getActiveProviders()
       const providerList = providers
         .map((p) => `  ${p.name.padEnd(12)} ${p.displayName} (${p.format})`)
@@ -247,7 +249,7 @@ export function createServer(options: ProxyServerOptions): http.Server {
     // ── API endpoint ──
     if (
       req.method === 'POST' &&
-      (req.url === '/v1/messages' || req.url === '/anthropic/messages')
+      (pathname === '/v1/messages' || pathname === '/anthropic/messages')
     ) {
       // Auth check
       if (!checkAuth(req, res)) return

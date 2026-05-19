@@ -1,6 +1,6 @@
 {
   "name": "@deepseek-router/core",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Production-grade proxy core — circuit breaker, failover, format translation, observability",
   "license": "MIT",
   "type": "module",

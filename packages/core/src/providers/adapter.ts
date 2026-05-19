@@ -22,7 +22,12 @@ export function anthropicToOpenAI(
 
   // System prompt → messages[0]
   if (body.system) {
-    messages.push({ role: 'system', content: body.system })
+    if (typeof body.system === 'string') {
+      messages.push({ role: 'system', content: body.system })
+    } else {
+      const text = body.system.map((b) => (b.type === 'text' ? b.text : '')).join('\n')
+      messages.push({ role: 'system', content: text })
+    }
   }
 
   // Messages conversion with tool_use / tool_result handling
