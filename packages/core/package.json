@@ -1,11 +1,8 @@
 {
-  "name": "@cgagm/deepseek-router-core",
+  "name": "@deepseek-router/core",
   "version": "1.0.0",
   "description": "Production-grade proxy core — circuit breaker, failover, format translation, observability",
   "license": "MIT",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",

@@ -11,7 +11,7 @@ import {
   RateLimiter,
   createServer,
   setLogLevel,
-} from '@cgagm/deepseek-router-core'
+} from '@deepseek-router/core'
 
 // ── Parse CLI arguments ──
 const args = process.argv.slice(2)
