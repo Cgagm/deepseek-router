@@ -13,8 +13,18 @@ import {
   setLogLevel,
 } from '@deepseek-router/core'
 
+// ── Read package version (do this early, before config-dependent logic) ──
+const _pkg = JSON.parse(
+  readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf-8'),
+) as { version: string }
+const version = _pkg.version
+
 // ── Parse CLI arguments ──
 const args = process.argv.slice(2)
+
+function hasFlag(flag: string): boolean {
+  return args.includes(flag)
+}
 
 function getArgValue(flag: string): string | undefined {
   const idx = args.indexOf(flag)
@@ -24,11 +34,32 @@ function getArgValue(flag: string): string | undefined {
   return val
 }
 
+// ── Handle flags that don't need config ──
+if (hasFlag('--version') || hasFlag('-v')) {
+  console.log(version)
+  process.exit(0)
+}
+
+if (hasFlag('--help') || hasFlag('-h')) {
+  console.log(`deepseek-router v${version}`)
+  console.log('')
+  console.log('Usage: deepseek-router [options]')
+  console.log('')
+  console.log('Options:')
+  console.log('  --config <path>    Path to config file')
+  console.log('  --port <port>      Override port (1024-65535)')
+  console.log('  --log-level <lvl>  Override log level (debug|info|warn|error)')
+  console.log('  --version, -v      Print version')
+  console.log('  --help, -h         Show this help')
+  console.log('')
+  process.exit(0)
+}
+
 const configPath = getArgValue('--config')
 const portOverride = getArgValue('--port')
 const logLevelOverride = getArgValue('--log-level')
 
-// ── Set log level early (before config load so bootstrap logging is affected) ──
+// ── Set log level early ──
 if (logLevelOverride) {
   setLogLevel(logLevelOverride)
 }
@@ -56,13 +87,6 @@ if (logLevelOverride) {
   }
   config.router.logLevel = logLevelOverride as 'debug' | 'info' | 'warn' | 'error'
 }
-
-// ── Read package version ──
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-const pkgPath = resolve(__dirname, '..', 'package.json')
-const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string }
-const version = pkg.version
 
 // ── Create core components ──
 const circuitBreaker = new CircuitBreaker(config.router.circuitBreaker)

@@ -63,6 +63,11 @@ jobs:
           // Package.json
           const pj=JSON.parse(fs.readFileSync('packages/cli/package.json','utf-8'));
           delete pj.devDependencies;delete pj.scripts;
+          // Replace workspace:* with actual version
+          const corePj=JSON.parse(fs.readFileSync('packages/core/package.json','utf-8'));
+          for(const k of Object.keys(pj.dependencies||{})){
+            if(pj.dependencies[k]==='workspace:*')pj.dependencies[k]=corePj.version;
+          }
           pj.files=['dist','node_modules'];pj.bundledDependencies=[...pkgMap.keys()];
           fs.writeFileSync('/tmp/staging/package.json',JSON.stringify(pj,null,2));
           "
