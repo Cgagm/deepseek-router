@@ -68,6 +68,15 @@ jobs:
           for(const k of Object.keys(pj.dependencies||{})){
             if(pj.dependencies[k]==='workspace:*')pj.dependencies[k]=corePj.version;
           }
+          // Include workspace package that pnpm store walk misses
+          const workspacePkg = '@deepseek-router/core';
+          if(pj.dependencies[workspacePkg] && !pkgMap.has(workspacePkg)){
+            const wsSrc = path.join('packages/core');
+            const wsDst = path.join(snm,'@deepseek-router','core');
+            fs.mkdirSync(wsDst,{recursive:true});
+            copyDir(wsSrc, wsDst);
+            pkgMap.set(workspacePkg, wsSrc);
+          }
           pj.files=['dist','node_modules'];pj.bundledDependencies=[...pkgMap.keys()];
           fs.writeFileSync('/tmp/staging/package.json',JSON.stringify(pj,null,2));
           "
