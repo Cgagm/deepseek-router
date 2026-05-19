@@ -299,13 +299,22 @@ describe('loadConfig', () => {
 })
 
 describe('watchConfig', () => {
+  let currentCloser: (() => void) | null = null
+
+  afterEach(() => {
+    if (currentCloser) {
+      try { currentCloser() } catch { /* already closed */ }
+      currentCloser = null
+    }
+  })
+
   it('detects file changes and calls onReload with new config', async () => {
     const path = writeConfig('watch.json', validConfig())
     process.env.DEEPSEEK_ROUTER_CONFIG = path
     const onReload = vi.fn()
     const onError = vi.fn()
 
-    const closer = watchConfig(onReload, onError)
+    currentCloser = watchConfig(onReload, onError)
 
     // Wait for watcher setup
     await new Promise((r) => setTimeout(r, 200))
@@ -321,7 +330,6 @@ describe('watchConfig', () => {
     expect(reloadedConfig?.router?.port).toBe(9090)
     expect(onError).not.toHaveBeenCalled()
 
-    closer()
     delete process.env.DEEPSEEK_ROUTER_CONFIG
   })
 
@@ -331,7 +339,7 @@ describe('watchConfig', () => {
     const onReload = vi.fn()
     const onError = vi.fn()
 
-    const closer = watchConfig(onReload, onError)
+    currentCloser = watchConfig(onReload, onError)
 
     // Wait for watcher setup
     await new Promise((r) => setTimeout(r, 200))
@@ -366,7 +374,6 @@ describe('watchConfig', () => {
     // onReload should NOT be called for invalid config
     expect(onReload).not.toHaveBeenCalled()
 
-    closer()
     delete process.env.DEEPSEEK_ROUTER_CONFIG
   })
 
@@ -376,7 +383,7 @@ describe('watchConfig', () => {
     const onReload = vi.fn()
     const onError = vi.fn()
 
-    const closer = watchConfig(onReload, onError)
+    currentCloser = watchConfig(onReload, onError)
 
     await new Promise((r) => setTimeout(r, 200))
 
@@ -389,7 +396,6 @@ describe('watchConfig', () => {
     expect(onReload).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
 
-    closer()
     delete process.env.DEEPSEEK_ROUTER_CONFIG
   })
 
@@ -399,12 +405,12 @@ describe('watchConfig', () => {
     const onReload = vi.fn()
     const onError = vi.fn()
 
-    const closer = watchConfig(onReload, onError)
+    currentCloser = watchConfig(onReload, onError)
 
     await new Promise((r) => setTimeout(r, 200))
 
     // Close the watcher
-    closer()
+    currentCloser()
 
     // Wait a bit
     await new Promise((r) => setTimeout(r, 200))
@@ -426,7 +432,7 @@ describe('watchConfig', () => {
     const onReload = vi.fn()
     const onError = vi.fn()
 
-    const closer = watchConfig(onReload, onError)
+    currentCloser = watchConfig(onReload, onError)
 
     await new Promise((r) => setTimeout(r, 200))
 
@@ -439,7 +445,6 @@ describe('watchConfig', () => {
     expect(onReload).not.toHaveBeenCalled()
     expect(onError).not.toHaveBeenCalled()
 
-    closer()
     delete process.env.DEEPSEEK_ROUTER_CONFIG
   })
 
@@ -451,7 +456,7 @@ describe('watchConfig', () => {
     const onReload = vi.fn()
     const onError = vi.fn()
 
-    const closer = watchConfig(onReload, onError)
+    currentCloser = watchConfig(onReload, onError)
 
     // onError should be called immediately with ConfigValidationError
     expect(onError).toHaveBeenCalledTimes(1)
@@ -459,9 +464,9 @@ describe('watchConfig', () => {
     expect(onReload).not.toHaveBeenCalled()
 
     // Should return a no-op closer function
-    expect(typeof closer).toBe('function')
-    // Calling closer should not throw
-    expect(() => closer()).not.toThrow()
+    expect(typeof currentCloser).toBe('function')
+    // Calling currentCloser should not throw
+    expect(() => currentCloser()).not.toThrow()
 
     delete process.env.DEEPSEEK_ROUTER_CONFIG
   })

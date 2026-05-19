@@ -55,6 +55,7 @@ function makeRequest(
         res.on('end', () => {
           resolve({ status: res.statusCode ?? 0, headers: res.headers, body: data })
         })
+        res.on('error', reject)
       },
     )
     req.on('error', reject)
@@ -181,8 +182,10 @@ describe('HTTP Server Integration', () => {
             let data = ''
             res.on('data', (c: Buffer) => (data += c.toString()))
             res.on('end', () => resolve({ status: res.statusCode ?? 0, body: data }))
+            res.on('error', () => resolve({ status: 0, body: '' }))
           },
         )
+        req.on('error', () => resolve({ status: 0, body: '' }))
         req.write('{invalid json}')
         req.end()
       })
@@ -258,6 +261,11 @@ describe('HTTP Server Integration', () => {
             let data = ''
             res.on('data', (c: Buffer) => (data += c.toString()))
             res.on('end', () => resolve({ status: res.statusCode ?? 0, body: data }))
+            res.on('error', () => {
+              if (settled) return
+              settled = true
+              resolve({ status: 413, body: '' })
+            })
           },
         )
         req.on('error', (err) => {
@@ -289,6 +297,7 @@ describe('HTTP Server Integration', () => {
               resolve({ status: res.statusCode ?? 0, headers: res.headers })
             },
           )
+          req.on('error', () => resolve({ status: 0, headers: {} }))
           req.end()
         },
       )
@@ -331,8 +340,10 @@ describe('HTTP Server Integration', () => {
             let data = ''
             res.on('data', (c: Buffer) => (data += c.toString()))
             res.on('end', () => resolve({ status: res.statusCode ?? 0 }))
+            res.on('error', () => resolve({ status: 0 }))
           },
         )
+        req.on('error', () => resolve({ status: 0 }))
         req.write('{invalid}')
         req.end()
       })

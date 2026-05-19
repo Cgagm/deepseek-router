@@ -109,6 +109,7 @@ function makeRequest(
         res.on('end', () => {
           resolve({ status: res.statusCode ?? 0, headers: res.headers, body: data })
         })
+        res.on('error', reject)
       },
     )
     req.on('error', reject)
