@@ -9,9 +9,6 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   lint:
     name: Lint
@@ -58,7 +55,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run test
+      - run: pnpm run build
+      - run: pnpm --filter=@deepseek-router/core exec vitest run
       - name: Coverage
         if: matrix.node-version == '22'
         run: pnpm --filter=@deepseek-router/core exec vitest run --coverage || true
