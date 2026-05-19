@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [master]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
   lint:
     name: Lint
@@ -56,7 +53,7 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
-      - run: pnpm --filter=@deepseek-router/core exec vitest run
+      - run: cd packages/core && npx vitest run --reporter=verbose
       - name: Coverage
         if: matrix.node-version == '22'
-        run: pnpm --filter=@deepseek-router/core exec vitest run --coverage || true
+        run: cd packages/core && npx vitest run --coverage || true
