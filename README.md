@@ -1,7 +1,11 @@
 # DeepSeek Router
 
 <p align="center">
-  <strong>Your Claude Code, Unbreakable.</strong><br>
+  <a href="https://github.com/Cgagm/deepseek-router/actions/workflows/ci.yml"><img src="https://github.com/Cgagm/deepseek-router/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/Cgagm/deepseek-router/pkgs/container/deepseek-router"><img src="https://img.shields.io/badge/docker-ghcr-blue" alt="Docker"></a>
+  <a href="https://www.npmjs.com/package/deepseek-router"><img src="https://img.shields.io/badge/npm-install-red" alt="npm"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
+  <br>
   <em>5 providers. 1 endpoint. 0 lost messages.</em>
 </p>
 
@@ -253,27 +257,32 @@ Full example with comments: [router.config.example.json](router.config.example.j
 ## 🧪 Quality
 
 ```
-TypeScript strict mode  ·  158+ tests  ·  93%+ coverage  ·  Vitest  ·  CI on Node 18/20/22
+TypeScript strict mode  ·  158 tests  ·  CI on Node 18/22/24  ·  Vitest  ·  Docker
 ```
 
 ---
 
 ## 📦 Install Options
 
-### Option 1: Git (recommended for now)
+### Option 1: Docker (recommended)
+```bash
+docker run -d -p 8788:8788 \
+  -v ./router.config.json:/app/router.config.json \
+  ghcr.io/Cgagm/deepseek-router:v1.0
+```
+
+[Docker Hub →](https://github.com/Cgagm/deepseek-router/pkgs/container/deepseek-router)
+
+### Option 2: npm
+```bash
+npm install -g deepseek-router
+deepseek-router --version
+```
+
+### Option 3: Git
 ```bash
 git clone https://github.com/Cgagm/deepseek-router.git
 cd deepseek-router && pnpm install && pnpm run build
-```
-
-### Option 2: One-liner (coming soon)
-```bash
-npx create-deepseek-router
-```
-
-### Option 3: Docker (coming soon)
-```bash
-docker run -p 8788:8788 -v ./router.config.json:/app/router.config.json cgagm/deepseek-router
 ```
 
 ---
