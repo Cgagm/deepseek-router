@@ -18,7 +18,7 @@ COPY packages/cli/ packages/cli/
 RUN pnpm run build
 
 # Prune production deps for the CLI, resolving workspace:* to actual deps
-RUN pnpm --filter=deepseek-router --prod deploy /prod
+RUN pnpm --filter="./packages/cli" --prod deploy /prod
 
 # -- Production stage --
 FROM node:22-alpine AS runtime
