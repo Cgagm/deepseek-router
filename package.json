@@ -1,6 +1,6 @@
 {
   "name": "deepseek-router",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "private": true,
   "description": "Production-grade multi-provider proxy for Claude Code — 5 Chinese AI providers with circuit breaking, automatic failover, and zero-downtime configuration",
   "keywords": [

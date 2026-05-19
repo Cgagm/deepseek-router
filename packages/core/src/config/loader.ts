@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { readFileSync, existsSync, watch } from 'fs'
 import { resolve } from 'path'
+import { homedir } from 'os'
 import type { ProviderConfig } from '../types/index.js'
 import { ConfigValidationError } from '../types/index.js'
 import { createLogger } from '../observability/logger.js'
@@ -141,18 +142,24 @@ function resolveEnvVars(value: string): string {
 
 // ── Resolve config path ──
 function resolveConfigPath(explicitPath?: string): string {
+  // If explicit path given, use it directly (no fallback)
+  if (explicitPath) {
+    if (existsSync(explicitPath)) return explicitPath
+    throw new ConfigValidationError(`Config file not found at specified path: ${explicitPath}`)
+  }
+
   const candidates = [
-    explicitPath,
     process.env.DEEPSEEK_ROUTER_CONFIG,
     resolve(process.cwd(), 'router.config.json'),
     resolve(process.cwd(), '.deepseek-router.json'),
+    resolve(homedir(), '.deepseek-router', 'router.config.json'),
   ].filter(Boolean) as string[]
 
   for (const candidate of candidates) {
     if (existsSync(candidate)) return candidate
   }
   throw new ConfigValidationError(
-    'No config file found. Create router.config.json in current directory, or set DEEPSEEK_ROUTER_CONFIG env var.',
+    'No config file found. Create router.config.json in current directory, ~/.deepseek-router/, or set DEEPSEEK_ROUTER_CONFIG env var.',
   )
 }
 

@@ -67,7 +67,7 @@ install_claude_code() {
 }
 
 # ── Step 4: Install deepseek-router ──
-ROUTER_TARBALL="https://github.com/Cgagm/deepseek-router/releases/download/v1.0.10/deepseek-router-1.0.10.tgz"
+ROUTER_TARBALL="https://github.com/Cgagm/deepseek-router/releases/download/v1.0.11/deepseek-router-1.0.11.tgz"
 
 install_router() {
   if command -v deepseek-router &>/dev/null; then
