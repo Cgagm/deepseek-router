@@ -1,0 +1,18 @@
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: pnpm run typecheck
+    lint:
+      run: pnpm run lint
+    format:
+      run: pnpm run format:check
+    test:
+      run: pnpm run test
+    lockfile:
+      run: pnpm install --frozen-lockfile
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit "$1"
