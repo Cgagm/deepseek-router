@@ -22,6 +22,19 @@ import { getHealthReport } from '../observability/health.js'
 const logger = createLogger('server')
 const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
 
+// ── Helpers ──
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = ''
+    req.on('data', (chunk: Buffer) => {
+      body += chunk.toString()
+      if (body.length > 1_000_000) reject(new Error('Body too large'))
+    })
+    req.on('end', () => resolve(body))
+    req.on('error', reject)
+  })
+}
+
 // ── Request body validation ──
 const contentBlockSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('text'), text: z.string() }),
@@ -178,6 +191,44 @@ export function createServer(options: ProxyServerOptions): http.Server {
       if (!checkAuth(req, res)) return
       res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' })
       res.end(options.metrics.getPrometheusFormat())
+      return
+    }
+
+    if (req.method === 'GET' && req.url === '/v1/models') {
+      if (!checkAuth(req, res)) return
+      const providers = router.getActiveProviders()
+      const models = new Set<string>()
+      for (const p of providers) {
+        for (const m of Object.keys(p.models)) {
+          models.add(m)
+        }
+      }
+      const data = [...models].map((id) => ({ id, object: 'model', owned_by: 'deepseek-router' }))
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ object: 'list', data }))
+      return
+    }
+
+    // Claude Code calls this for token counting during context management
+    if (req.method === 'POST' && req.url === '/v1/messages/count_tokens') {
+      if (!checkAuth(req, res)) return
+      try {
+        const raw = await readBody(req)
+        const body = JSON.parse(raw)
+        // Rough estimate: ~2 chars per token for CJK, ~4 for English
+        let count = 0
+        if (body.messages) {
+          for (const msg of body.messages) {
+            count += Math.ceil(JSON.stringify(msg.content).length / 3.5)
+          }
+        }
+        count = count || 1
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ input_tokens: count }))
+      } catch {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ input_tokens: 1 }))
+      }
       return
     }
 
