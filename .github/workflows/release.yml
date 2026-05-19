@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm run build
+
+      - name: Build tarball
+        run: |
+          # Create staging directory with flat deps
+          mkdir -p /tmp/staging
+          cp -r packages/cli/dist /tmp/staging/
+
+          # Collect all packages from pnpm store and flatten
+          node -e "
+          const fs=require('fs'),path=require('path');
+          const nm=path.join('node_modules','.pnpm');
+          const pkgMap=new Map();
+          function collect(dir){
+            for(const e of fs.readdirSync(dir,{withFileTypes:true})){
+              if(!e.isDirectory()||e.name.startsWith('.'))continue;
+              const fp=path.join(dir,e.name);
+              const pj=path.join(fp,'package.json');
+              if(fs.existsSync(pj)){
+                try{const p=JSON.parse(fs.readFileSync(pj,'utf-8'));if(p.name)pkgMap.set(p.name,fp)}catch(_){}
+              }
+              if(e.name.startsWith('@'))collect(fp);
+            }
+          }
+          for(const d of fs.readdirSync(nm,{withFileTypes:true})){
+            if(!d.isDirectory())continue;
+            const nn=path.join(nm,d.name,'node_modules');
+            if(fs.existsSync(nn))collect(nn);
+          }
+          // Copy all flat
+          const snm=path.join('/tmp/staging','node_modules');
+          fs.mkdirSync(snm,{recursive:true});
+          function copyDir(s,d){fs.mkdirSync(d,{recursive:true});for(const e of fs.readdirSync(s,{withFileTypes:true})){const sp=path.join(s,e.name),dp=path.join(d,e.name);if(e.isDirectory())copyDir(sp,dp);else if(e.isFile())fs.copyFileSync(sp,dp);else if(e.isSymbolicLink()){try{const r=fs.realpathSync(sp);fs.statSync(r).isFile()?fs.copyFileSync(r,dp):copyDir(r,dp)}catch(_){}}}}
+          for(const[nm,sp]of pkgMap){let dp;if(nm.startsWith('@')){const[sc,n]=nm.split('/');fs.mkdirSync(path.join(snm,sc),{recursive:true});dp=path.join(snm,sc,n)}else{dp=path.join(snm,nm)}if(fs.existsSync(dp))fs.rmSync(dp,{recursive:true,force:true});copyDir(sp,dp)}
+          // Package.json
+          const pj=JSON.parse(fs.readFileSync('packages/cli/package.json','utf-8'));
+          delete pj.devDependencies;delete pj.scripts;
+          pj.files=['dist','node_modules'];pj.bundledDependencies=[...pkgMap.keys()];
+          fs.writeFileSync('/tmp/staging/package.json',JSON.stringify(pj,null,2));
+          "
+
+          cd /tmp/staging
+          npm pack --pack-destination=/tmp/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: /tmp/deepseek-router-*.tgz
+          generate_release_notes: true

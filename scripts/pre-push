@@ -1,0 +1,23 @@
+#!/bin/bash
+# Git pre-push hook — blocks push if verification fails
+# Installed as .git/hooks/pre-push
+
+set -euo pipefail
+
+echo ""
+echo "=========================================="
+echo " Pre-Push Verification"
+echo "=========================================="
+
+# Run the full verification script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+if [ -f "$REPO_ROOT/scripts/verify.sh" ]; then
+  bash "$REPO_ROOT/scripts/verify.sh"
+  exit $?
+else
+  echo "WARNING: verify.sh not found, skipping pre-push check"
+  echo "Run: bash scripts/verify.sh"
+  exit 0
+fi
