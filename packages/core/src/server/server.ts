@@ -232,7 +232,7 @@ export function createServer(options: ProxyServerOptions): http.Server {
       return
     }
 
-    if (req.method === 'GET' && req.url === '/') {
+    if ((req.method === 'GET' || req.method === 'HEAD') && req.url === '/') {
       const providers = router.getActiveProviders()
       const providerList = providers
         .map((p) => `  ${p.name.padEnd(12)} ${p.displayName} (${p.format})`)
