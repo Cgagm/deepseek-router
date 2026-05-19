@@ -67,16 +67,14 @@ install_claude_code() {
 }
 
 # ── Step 4: Install deepseek-router ──
-ROUTER_TARBALL="https://github.com/Cgagm/deepseek-router/releases/download/v1.0.11/deepseek-router-1.0.11.tgz"
-
 install_router() {
   if command -v deepseek-router &>/dev/null; then
     ok "deepseek-router already installed"
   else
-    info "Installing deepseek-router from GitHub release..."
-    npm install -g "$ROUTER_TARBALL" 2>&1 || {
+    info "Installing deepseek-router from npm..."
+    npm install -g deepseek-router 2>&1 || {
       warn "npm install -g failed. Trying with sudo..."
-      sudo npm install -g "$ROUTER_TARBALL" 2>&1 || \
+      sudo npm install -g deepseek-router 2>&1 || \
         fail "Failed to install deepseek-router."
     }
     ok "deepseek-router installed"
