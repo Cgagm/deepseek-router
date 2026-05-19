@@ -1,11 +1,11 @@
 # -- Build stage --
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 WORKDIR /app
 
-COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/core/package.json packages/core/
 COPY packages/cli/package.json packages/cli/
 
@@ -21,7 +21,7 @@ RUN pnpm run build
 RUN pnpm --filter=deepseek-router --prod deploy /prod
 
 # -- Production stage --
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 COPY --from=build /prod /app
 WORKDIR /app
