@@ -21,23 +21,28 @@
 
 ## ⚡ Quick Start
 
+### 一键安装（推荐）
+
+**[CC China Stack](https://2445696995469.gumroad.com/l/kfdwl) — $9 开箱即用**
+
 ```bash
-# 1. Clone and install
+unzip cc-china-stack-*.zip && cd cc-china-stack
+bash setup.sh
+export DEEPSEEK_API_KEY="sk-your-key"
+claude
+```
+
+不用写配置、不用配代理、不用理解什么是 failover。一个脚本搞定。
+
+---
+
+### 手动安装（免费）
+
+```bash
 git clone https://github.com/Cgagm/deepseek-router.git
 cd deepseek-router
 pnpm install && pnpm run build
-
-# 2. Set your API keys (at least 2 providers recommended)
-export DEEPSEEK_API_KEY="sk-your-key"
-export TENCENT_API_KEY="sk-your-key"
-
-# 3. Launch — that's it
 cp router.config.example.json router.config.json
-pnpm run dev
-```
-
-```bash
-# 4. Point Claude Code at it
 export ANTHROPIC_BASE_URL="http://localhost:8788/v1/messages"
 claude
 ```

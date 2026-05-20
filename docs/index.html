@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC China Stack — One-Click Claude Code with Chinese AI Models</title>
+<style>
+  :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff; --green: #3fb950; --orange: #d2991d; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  .container { max-width: 880px; margin: 0 auto; padding: 40px 24px; }
+  header { text-align: center; padding: 80px 24px 60px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 2.4em; margin-bottom: 8px; background: linear-gradient(135deg, var(--accent), var(--green)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  header p { color: var(--muted); font-size: 1.15em; max-width: 600px; margin: 0 auto; }
+  .price-tag { display: inline-block; background: var(--card); border: 2px solid var(--green); border-radius: 12px; padding: 16px 32px; margin: 32px 0 16px; }
+  .price-tag .amount { font-size: 3em; font-weight: 700; color: var(--green); }
+  .price-tag .period { color: var(--muted); font-size: 0.9em; }
+  .btn { display: inline-block; padding: 14px 40px; border-radius: 8px; font-size: 1.05em; font-weight: 600; text-decoration: none; cursor: pointer; border: none; transition: opacity 0.15s; }
+  .btn-primary { background: var(--green); color: #000; }
+  .btn:hover { opacity: 0.85; }
+  section { padding: 48px 0; border-bottom: 1px solid var(--border); }
+  h2 { font-size: 1.6em; margin-bottom: 20px; }
+  h3 { font-size: 1.15em; margin-bottom: 8px; }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-top: 24px; }
+  .feature-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .feature-card .icon { font-size: 1.5em; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 0.85em; text-transform: uppercase; }
+  .code-block { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 16px; overflow-x: auto; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.9em; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 600; }
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+  footer { text-align: center; padding: 40px 24px; color: var(--muted); font-size: 0.85em; }
+  footer a { color: var(--accent); text-decoration: none; }
+  .highlight { color: var(--green); font-weight: 600; }
+  .muted { color: var(--muted); }
+  .arch-diagram { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 24px; text-align: center; font-family: monospace; font-size: 0.9em; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CC China Stack</h1>
+  <p>One script. 5 Chinese AI providers. Claude Code running in 2 minutes. No config files to write, no failover logic to build.</p>
+  <div class="price-tag">
+    <div class="amount">$9</div>
+    <div class="period">one-time purchase</div>
+  </div>
+  <br>
+  <a href="https://2445696995469.gumroad.com/l/kfdwl" class="btn btn-primary">Buy Now — $9</a>
+  <p class="muted" style="margin-top:12px;">7-day money-back guarantee</p>
+</header>
+
+<div class="container">
+
+<section>
+  <h2>What You Get</h2>
+  <p>A single ZIP file containing everything you need to run Claude Code through Chinese AI providers:</p>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="icon">📜</div>
+      <h3>setup.sh</h3>
+      <p>Cross-platform setup script — macOS, Linux, Windows (Git Bash / WSL)</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">⚙️</div>
+      <h3>router.config.json</h3>
+      <p>Pre-configured for 5 Chinese AI providers with circuit breaker and automatic failover</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📖</div>
+      <h3>README.md</h3>
+      <p>Step-by-step guide with troubleshooting and provider setup instructions</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔄</div>
+      <h3>Auto-Failover</h3>
+      <p>If one provider fails, the next takes over automatically. You won't even notice.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>How It Works</h2>
+  <div class="arch-diagram">
+    You type into Claude Code<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br>
+    <strong>deepseek-router</strong> (localhost:8788)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── DeepSeek (cheapest, native Anthropic)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Tencent Hunyuan (fallback)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Zhipu GLM (fallback)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Alibaba Bailian (fallback)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;└── ByteDance Volcengine (fallback)
+  </div>
+</section>
+
+<section>
+  <h2>Pricing Comparison</h2>
+  <table>
+    <tr><th></th><th>Official Anthropic API</th><th>CC China Stack</th></tr>
+    <tr><td>Cost per 1M tokens</td><td>$3.00–$15.00</td><td class="highlight">~$0.11–$0.14</td></tr>
+    <tr><td>Savings</td><td>—</td><td class="highlight">7–34x cheaper</td></tr>
+    <tr><td>Providers</td><td>1</td><td class="highlight">5 (auto failover)</td></tr>
+    <tr><td>Setup</td><td>Sign up + billing</td><td class="highlight">One script</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Features</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="icon">⚡</div>
+      <h3>Zero Config</h3>
+      <p>The setup script drops everything where it belongs. No YAML, no JSON to write.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🛡️</div>
+      <h3>Circuit Breaker</h3>
+      <p>Isolates failing providers automatically. Prevents cascading failures.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔄</div>
+      <h3>Format Translation</h3>
+      <p>Automatic Anthropic ↔ OpenAI translation. All 5 providers speak the same language.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📊</div>
+      <h3>Health Dashboard</h3>
+      <p><code>curl localhost:8788/health</code> — real-time status of every provider.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔥</div>
+      <h3>Hot Reload</h3>
+      <p>Edit config, changes take effect within seconds. No restart needed.</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🔒</div>
+      <h3>Keys Stay Local</h3>
+      <p>Your API keys stay on your machine as environment variables. Nothing leaves your computer.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Requirements</h2>
+  <ul style="padding-left: 20px;">
+    <li>Node.js 18+ (<a href="https://nodejs.org" style="color:var(--accent)">nodejs.org</a>)</li>
+    <li>At least 1 Chinese AI API key (we recommend <a href="https://platform.deepseek.com" style="color:var(--accent)">DeepSeek</a>)</li>
+    <li>macOS, Linux, or Windows (Git Bash / WSL)</li>
+  </ul>
+</section>
+
+<section>
+  <h2>FAQ</h2>
+  <p><strong>Q: Do I need all 5 API keys?</strong><br>A: No. One key (DeepSeek) is enough to start. The other 4 act as your safety net.</p><br>
+  <p><strong>Q: Will this slow down Claude Code?</strong><br>A: No measurable difference. <1ms routing overhead, runs on localhost.</p><br>
+  <p><strong>Q: Is this safe?</strong><br>A: Yes. API keys stay on your machine. The router only proxies requests to providers you configure.</p><br>
+  <p><strong>Q: What about updates?</strong><br>A: <code>npm update -g deepseek-router</code> — your config stays untouched.</p><br>
+  <p><strong>Q: Can I add custom providers?</strong><br>A: Yes. Edit <code>~/.deepseek-router/router.config.json</code> and add your own endpoints.</p><br>
+  <p><strong>Q: VS Code extension?</strong><br>A: Yes. Set <code>ANTHROPIC_BASE_URL</code> and <code>ANTHROPIC_API_KEY</code> in your shell before launching VS Code.</p>
+</section>
+
+</div>
+
+<footer>
+  <p>
+    <a href="terms.html">Terms &amp; Conditions</a> &nbsp;·&nbsp;
+    <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp;
+    <a href="terms.html#refund">Refund Policy</a>
+  </p>
+  <p style="margin-top:8px;">&copy; 2026 Chen Gang. MIT License.</p>
+</footer>
+
+</body>
+</html>

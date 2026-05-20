@@ -195,6 +195,27 @@ Edit `~/.deepseek-router/router.config.json` — all endpoints must start with `
 
 ---
 
+## Advanced: Supercharg Your Workflow
+
+CC China Stack saves you money on API costs. To also boost code quality, pair it with two free frameworks:
+
+| Framework | What It Does | Install |
+|-----------|-------------|---------|
+| **gstack** | Virtual 23-person engineering team — CEO review, QA testing, security audit, one-click ship | `git clone https://github.com/garrytan/gstack.git ~/.claude/skills/gstack` |
+| **Superpowers** | Engineering discipline — TDD enforcement, brainstorming, systematic debugging | `/plugin install superpowers@claude-plugins-official` |
+
+Read **[SUPERPOWERS-GSTACK-GUIDE.md](./SUPERPOWERS-GSTACK-GUIDE.md)** for the complete 9-step collaborative workflow.
+
+### Desktop GUI: Open Cowork
+
+Prefer a desktop app over CLI? Pair CC China Stack with Open Cowork (MIT-licensed, one-click install):
+
+```
+Open Cowork (Desktop GUI) → deepseek-router → 5 Chinese AI providers
+```
+
+Read **[OPEN-COWORK-INTEGRATION.md](./OPEN-COWORK-INTEGRATION.md)** for the step-by-step setup.
+
 ## Updates
 
 This package uses deepseek-router, which is actively maintained. To update:
