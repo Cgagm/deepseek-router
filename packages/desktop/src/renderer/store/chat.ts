@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 
-
 interface ChatState {
   sessions: ChatSession[]
   activeSessionId: string | null
