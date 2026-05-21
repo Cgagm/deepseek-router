@@ -10,8 +10,19 @@ router.config.json
 .DS_Store
 Thumbs.db
 
-# Desktop app builds
-packages/desktop/release/
-packages/desktop/out/
+# Desktop app builds (removed)
 *.exe
 *.zip
+
+# Test files
+test-*.js
+test-*.mjs
+test-electron*.js
+test-app/
+
+# Screenshots
+*.png
+*.jpg
+
+# npm config
+.npmrc
