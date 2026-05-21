@@ -278,12 +278,25 @@ docker run -d -p 8788:8788 \
 
 [Docker Hub →](https://github.com/Cgagm/deepseek-router/pkgs/container/deepseek-router)
 
-### Option 2: npm
+### Option 2: npm (coming soon)
 ```bash
 npm install @deepseek-router/core
 ```
+> npm publish is temporarily blocked by account 2FA. Use GitHub Packages below.
 
-### Option 3: Git
+### Option 3: GitHub Packages (available now)
+```bash
+# Configure .npmrc
+cat >> .npmrc << 'EOF'
+@Cgagm:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN
+EOF
+
+npm install @Cgagm/deepseek-router
+```
+Generate a GitHub token at https://github.com/settings/tokens with `read:packages` scope.
+
+### Option 4: Git
 ```bash
 git clone https://github.com/Cgagm/deepseek-router.git
 cd deepseek-router && pnpm install && pnpm run build
