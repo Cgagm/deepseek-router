@@ -1,8 +1,20 @@
 {
   "name": "@deepseek-router/core",
-  "version": "1.0.11",
-  "description": "Production-grade proxy core — circuit breaker, failover, format translation, observability",
+  "version": "1.0.12",
+  "description": "Production-grade multi-provider proxy for Claude Code — DeepSeek, Kimi, Qwen, Zhipu with circuit breaker and automatic failover",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cgagm/deepseek-router.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/Cgagm/deepseek-router#readme",
+  "keywords": ["deepseek", "claude", "ai-router", "failover", "circuit-breaker", "anthropic", "openai", "proxy", "llm", "typescript"],
+  "files": [
+    "dist",
+    "README.md",
+    "package.json"
+  ],
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",

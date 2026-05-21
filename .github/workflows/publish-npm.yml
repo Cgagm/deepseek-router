@@ -1,0 +1,38 @@
+name: Publish npm
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'packages/core/**'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish @deepseek-router/core
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: contains(github.event.head_commit.message, 'release:')
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build core
+        run: cd packages/core && pnpm build
+
+      - name: Publish to npm
+        run: cd packages/core && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
