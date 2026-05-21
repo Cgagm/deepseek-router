@@ -1,0 +1,32 @@
+appId: com.ccchinastack.desktop
+productName: 摸鱼
+directories:
+  buildResources: resources
+  output: release
+files:
+  - out/**/*
+  - node_modules/**/*
+electronDist: ../../node_modules/.pnpm/electron@31.7.7/node_modules/electron/dist
+
+win:
+  target:
+    - target: zip
+      arch: [x64]
+  artifactName: CC-China-Stack-${version}-win64.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  artifactName: CC-China-Stack-${version}.${ext}
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  artifactName: CC-China-Stack-${version}.${ext}
+
+publish:
+  provider: github
+  owner: Cgagm
+  repo: deepseek-router

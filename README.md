@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://github.com/Cgagm/deepseek-router/actions/workflows/ci.yml"><img src="https://github.com/Cgagm/deepseek-router/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/Cgagm/deepseek-router/pkgs/container/deepseek-router"><img src="https://img.shields.io/badge/docker-ghcr-blue" alt="Docker"></a>
-  <a href="https://www.npmjs.com/package/deepseek-router"><img src="https://img.shields.io/badge/npm-install-red" alt="npm"></a>
+  <a href="https://www.npmjs.com/package/@deepseek-router/core"><img src="https://img.shields.io/npm/v/@deepseek-router/core?color=red" alt="npm"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
   <br>
   <em>5 providers. 1 endpoint. 0 lost messages.</em>
@@ -23,7 +23,7 @@
 
 ### 一键安装（推荐）
 
-**[CC China Stack](https://2445696995469.gumroad.com/l/kfdwl) — $9 开箱即用**
+**[摸鱼 (Moyu)](https://2445696995469.gumroad.com/l/kfdwl) — $9 开箱即用**
 
 ```bash
 unzip cc-china-stack-*.zip && cd cc-china-stack
@@ -280,8 +280,7 @@ docker run -d -p 8788:8788 \
 
 ### Option 2: npm
 ```bash
-npm install -g deepseek-router
-deepseek-router --version
+npm install @deepseek-router/core
 ```
 
 ### Option 3: Git
