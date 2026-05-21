@@ -68,7 +68,7 @@ function createWindow(): void {
   ipcMain.on('app:setTheme', (_event, theme: string) => {
     if (mainWindow) {
       mainWindow.webContents.executeJavaScript(
-        `document.documentElement.setAttribute('data-theme', '${theme}')`
+        `document.documentElement.setAttribute('data-theme', '${theme}')`,
       )
     }
   })

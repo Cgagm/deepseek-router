@@ -44,7 +44,7 @@ interface ModelSelection {
 }
 
 function detectTaskType(messages: { role: string; content: string }[]): string {
-  const userMsgs = messages.filter(m => m.role === 'user')
+  const userMsgs = messages.filter((m) => m.role === 'user')
   if (!userMsgs.length) return 'default'
   const lastMsg = userMsgs[userMsgs.length - 1].content.toLowerCase()
 
@@ -63,7 +63,7 @@ function detectTaskType(messages: { role: string; content: string }[]): string {
   ]
 
   for (const [type, pats] of patterns) {
-    if (pats.some(p => p.test(lastMsg))) return type
+    if (pats.some((p) => p.test(lastMsg))) return type
   }
   return 'default'
 }
@@ -116,11 +116,11 @@ async function fetchStream(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
       stream: true,
       max_tokens: 4096,
     }),
@@ -180,11 +180,11 @@ async function fetchNonStream(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model,
-      messages: messages.map(m => ({ role: m.role, content: m.content })),
+      messages: messages.map((m) => ({ role: m.role, content: m.content })),
       stream: false,
       max_tokens: 4096,
     }),
@@ -220,7 +220,9 @@ function getApiKey(provider: string, ipcEvent: IpcMainInvokeEvent): string | nul
       const settings = JSON.parse(result[0].values[0][0] as string)
       return settings.apiKeys?.[provider] || null
     }
-  } catch { /* not available */ }
+  } catch {
+    /* not available */
+  }
 
   return null
 }
@@ -235,9 +237,10 @@ export function setupRouterIPC(): void {
 
     // Auto-detect task and select best model
     const taskType = detectTaskType(messages)
-    const selection = overrideProvider && overrideModel
-      ? { provider: overrideProvider, model: overrideModel }
-      : selectModel(taskType)
+    const selection =
+      overrideProvider && overrideModel
+        ? { provider: overrideProvider, model: overrideModel }
+        : selectModel(taskType)
 
     const providerDef = PROVIDERS[selection.provider]
     if (!providerDef) {
@@ -248,7 +251,7 @@ export function setupRouterIPC(): void {
     if (!apiKey) {
       // Fallback: try next available provider
       throw new Error(
-        `未配置 ${providerDef.name} 的 API Key。请在设置中填写 API Key，或购买 Token 套餐直接使用。`
+        `未配置 ${providerDef.name} 的 API Key。请在设置中填写 API Key，或购买 Token 套餐直接使用。`,
       )
     }
 
@@ -280,7 +283,7 @@ export function setupRouterIPC(): void {
               timestamp: Date.now(),
               provider: selection.provider,
               model: selection.model,
-            }
+            },
           })
         } catch (err: any) {
           if (!controller.signal.aborted) {

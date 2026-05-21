@@ -32,7 +32,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   minimizeToTray: true,
   locale: 'zh',
 
-  toggleSettings: () => set(s => ({ showSettings: !s.showSettings })),
+  toggleSettings: () => set((s) => ({ showSettings: !s.showSettings })),
   setActiveTab: (tab) => set({ activeTab: tab }),
 
   setApiKey: (provider, key) => {
@@ -68,7 +68,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           locale: parsed.locale || 'zh',
         })
       }
-    } catch { /* use defaults */ }
+    } catch {
+      /* use defaults */
+    }
     // Also restore from localStorage
     const savedLocale = localStorage.getItem('cc-locale') as Locale | null
     if (savedLocale) set({ locale: savedLocale })
@@ -76,8 +78,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: async () => {
     const { apiKeys, enabledModels, autostart, minimizeToTray, locale } = get()
-    await window.api.storage.setSetting('settings', JSON.stringify({
-      apiKeys, enabledModels, autostart, minimizeToTray, locale,
-    }))
+    await window.api.storage.setSetting(
+      'settings',
+      JSON.stringify({
+        apiKeys,
+        enabledModels,
+        autostart,
+        minimizeToTray,
+        locale,
+      }),
+    )
   },
 }))

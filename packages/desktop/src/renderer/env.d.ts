@@ -4,7 +4,12 @@ interface Window {
   api: {
     // Chat
     chat: {
-      send: (params: { messages: ChatMessage[]; provider?: string; model?: string; stream?: boolean }) => Promise<ChatResponse>
+      send: (params: {
+        messages: ChatMessage[]
+        provider?: string
+        model?: string
+        stream?: boolean
+      }) => Promise<ChatResponse>
       abort: () => void
       onStreamChunk: (cb: (chunk: string) => void) => () => void
       onStreamDone: (cb: (msg: ChatMessage) => void) => () => void
@@ -27,7 +32,9 @@ interface Window {
     }
     // File
     file: {
-      openDialog: (options?: { filters?: { name: string; extensions: string[] }[] }) => Promise<string[] | null>
+      openDialog: (options?: {
+        filters?: { name: string; extensions: string[] }[]
+      }) => Promise<string[] | null>
       readAsBase64: (path: string) => Promise<string>
       readAsText: (path: string) => Promise<string>
     }

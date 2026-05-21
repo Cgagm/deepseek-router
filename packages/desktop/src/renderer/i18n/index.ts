@@ -15,7 +15,11 @@ export function getDictionary(locale: Locale): Translations {
  * Translate a key with optional template interpolation.
  * Usage: t('welcome_title') or t('trial_days', { days: 7 })
  */
-export function t(locale: Locale, key: keyof Translations, params?: Record<string, string | number>): string {
+export function t(
+  locale: Locale,
+  key: keyof Translations,
+  params?: Record<string, string | number>,
+): string {
   const dict = getDictionary(locale)
   let text: string = (dict[key] as string) ?? key
   if (params) {
@@ -32,7 +36,8 @@ export const useLocale = () => useContext(LocaleContext)
 
 export function useT() {
   const locale = useLocale()
-  return (key: keyof Translations, params?: Record<string, string | number>) => t(locale, key, params)
+  return (key: keyof Translations, params?: Record<string, string | number>) =>
+    t(locale, key, params)
 }
 
 export { zh, en }

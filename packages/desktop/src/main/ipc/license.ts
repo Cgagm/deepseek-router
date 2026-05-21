@@ -25,12 +25,16 @@ export function setupLicenseIPC(): void {
     const db = getDatabase()
     const deviceId = getDeviceId()
 
-    const result = db.exec("SELECT type, device_id, token_balance, activated_at, expires_at FROM license LIMIT 1")
+    const result = db.exec(
+      'SELECT type, device_id, token_balance, activated_at, expires_at FROM license LIMIT 1',
+    )
     if (!result.length || !result[0].values.length) {
       // No license record - start trial
       const now = Date.now()
-      db.run("INSERT INTO license (key, type, device_id, token_balance, activated_at, expires_at) VALUES (?,?,?,?,?,?)",
-        ['default', 'trial', deviceId, 0, now, now + TRIAL_MAX_DAYS * 86400000])
+      db.run(
+        'INSERT INTO license (key, type, device_id, token_balance, activated_at, expires_at) VALUES (?,?,?,?,?,?)',
+        ['default', 'trial', deviceId, 0, now, now + TRIAL_MAX_DAYS * 86400000],
+      )
 
       return {
         activated: false,
@@ -51,8 +55,10 @@ export function setupLicenseIPC(): void {
 
     if (type === 'buyout' && storedDeviceId !== deviceId) {
       return {
-        activated: false, type: 'none' as const,
-        expiresAt: null, deviceId,
+        activated: false,
+        type: 'none' as const,
+        expiresAt: null,
+        deviceId,
       }
     }
 
@@ -66,17 +72,22 @@ export function setupLicenseIPC(): void {
     if (type === 'trial') {
       const now = Date.now()
       if (expiresAt && now > expiresAt) {
-        return { ...status, activated: false, type: 'none' as const, trialDaysLeft: 0, trialChatsUsed: TRIAL_MAX_CHATS_PER_DAY }
+        return {
+          ...status,
+          activated: false,
+          type: 'none' as const,
+          trialDaysLeft: 0,
+          trialChatsUsed: TRIAL_MAX_CHATS_PER_DAY,
+        }
       }
       status.trialDaysLeft = Math.max(0, Math.ceil((expiresAt - now) / 86400000))
 
       // Count today's chats
       const todayStart = new Date()
       todayStart.setHours(0, 0, 0, 0)
-      const chatResult = db.exec(
-        "SELECT COUNT(*) FROM chat_sessions WHERE created_at >= ?",
-        [todayStart.getTime()]
-      )
+      const chatResult = db.exec('SELECT COUNT(*) FROM chat_sessions WHERE created_at >= ?', [
+        todayStart.getTime(),
+      ])
       status.trialChatsUsed = chatResult.length > 0 ? (chatResult[0].values[0][0] as number) : 0
     }
 
@@ -92,13 +103,24 @@ export function setupLicenseIPC(): void {
       const type = key.startsWith('CC2-BUY-') ? 'buyout' : 'token'
       const now = Date.now()
 
-      db.run("DELETE FROM license")
+      db.run('DELETE FROM license')
       db.run(
-        "INSERT INTO license (key, type, device_id, token_balance, activated_at, expires_at) VALUES (?,?,?,?,?,?)",
-        [key, type, deviceId, type === 'token' ? 500000 : 0, now, type === 'token' ? now + 365 * 86400000 : null]
+        'INSERT INTO license (key, type, device_id, token_balance, activated_at, expires_at) VALUES (?,?,?,?,?,?)',
+        [
+          key,
+          type,
+          deviceId,
+          type === 'token' ? 500000 : 0,
+          now,
+          type === 'token' ? now + 365 * 86400000 : null,
+        ],
       )
 
-      return { success: true, message: type === 'buyout' ? '买断版激活成功！永久使用' : 'Token版激活成功！50万Token已到账' }
+      return {
+        success: true,
+        message:
+          type === 'buyout' ? '买断版激活成功！永久使用' : 'Token版激活成功！50万Token已到账',
+      }
     }
 
     return { success: false, message: '激活码无效，请检查输入' }
@@ -106,7 +128,7 @@ export function setupLicenseIPC(): void {
 
   ipcMain.handle('license:getBalance', () => {
     const db = getDatabase()
-    const result = db.exec("SELECT type, token_balance, expires_at FROM license LIMIT 1")
+    const result = db.exec('SELECT type, token_balance, expires_at FROM license LIMIT 1')
     if (!result.length || !result[0].values.length) {
       return { tokens: 0, expiresAt: null }
     }
@@ -119,11 +141,11 @@ export function setupLicenseIPC(): void {
 
   ipcMain.handle('license:deductTokens', (_event, amount: number) => {
     const db = getDatabase()
-    const result = db.exec("SELECT token_balance FROM license LIMIT 1")
+    const result = db.exec('SELECT token_balance FROM license LIMIT 1')
     if (!result.length || !result[0].values.length) return false
     const balance = result[0].values[0][0] as number
     if (balance < amount) return false
-    db.run("UPDATE license SET token_balance = ?", [balance - amount])
+    db.run('UPDATE license SET token_balance = ?', [balance - amount])
     return true
   })
 }

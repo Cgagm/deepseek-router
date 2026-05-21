@@ -32,7 +32,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   setSessions: (sessions) => set({ sessions }),
 
   setActiveSession: (id) => {
-    const session = get().sessions.find(s => s.id === id)
+    const session = get().sessions.find((s) => s.id === id)
     set({ activeSessionId: id, messages: session?.messages || [], streamBuffer: '' })
   },
 
@@ -43,7 +43,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Save to current session
     const { activeSessionId, sessions } = get()
     if (activeSessionId) {
-      const idx = sessions.findIndex(s => s.id === activeSessionId)
+      const idx = sessions.findIndex((s) => s.id === activeSessionId)
       if (idx >= 0) {
         const updatedSessions = [...sessions]
         updatedSessions[idx] = {

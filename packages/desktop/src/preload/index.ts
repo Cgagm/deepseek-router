@@ -17,7 +17,10 @@ const api = {
     },
 
     onStreamChunk: (cb: (chunk: string) => void): (() => void) => {
-      const handler = (_event: Electron.IpcRendererEvent, data: { requestId: string; chunk: string }) => {
+      const handler = (
+        _event: Electron.IpcRendererEvent,
+        data: { requestId: string; chunk: string },
+      ) => {
         cb(data.chunk)
       }
       ipcRenderer.on('chat:streamChunk', handler)
@@ -25,7 +28,10 @@ const api = {
     },
 
     onStreamDone: (cb: (msg: ChatMessage) => void): (() => void) => {
-      const handler = (_event: Electron.IpcRendererEvent, data: { requestId: string; message: ChatMessage }) => {
+      const handler = (
+        _event: Electron.IpcRendererEvent,
+        data: { requestId: string; message: ChatMessage },
+      ) => {
         cb(data.message)
       }
       ipcRenderer.on('chat:streamDone', handler)
@@ -33,7 +39,10 @@ const api = {
     },
 
     onStreamError: (cb: (err: string) => void): (() => void) => {
-      const handler = (_event: Electron.IpcRendererEvent, data: { requestId: string; error: string }) => {
+      const handler = (
+        _event: Electron.IpcRendererEvent,
+        data: { requestId: string; error: string },
+      ) => {
         cb(data.error)
       }
       ipcRenderer.on('chat:streamError', handler)
@@ -45,12 +54,15 @@ const api = {
   storage: {
     getChats: (): Promise<ChatSession[]> => ipcRenderer.invoke('storage:getChats'),
     getChat: (id: string): Promise<ChatSession | null> => ipcRenderer.invoke('storage:getChat', id),
-    saveChat: (session: ChatSession): Promise<void> => ipcRenderer.invoke('storage:saveChat', session),
+    saveChat: (session: ChatSession): Promise<void> =>
+      ipcRenderer.invoke('storage:saveChat', session),
     deleteChat: (id: string): Promise<void> => ipcRenderer.invoke('storage:deleteChat', id),
     getSkills: (): Promise<Skill[]> => ipcRenderer.invoke('storage:getSkills'),
     getTemplates: (): Promise<Template[]> => ipcRenderer.invoke('storage:getTemplates'),
-    getSetting: (key: string): Promise<string | null> => ipcRenderer.invoke('storage:getSetting', key),
-    setSetting: (key: string, value: string): Promise<void> => ipcRenderer.invoke('storage:setSetting', key, value),
+    getSetting: (key: string): Promise<string | null> =>
+      ipcRenderer.invoke('storage:getSetting', key),
+    setSetting: (key: string, value: string): Promise<void> =>
+      ipcRenderer.invoke('storage:setSetting', key, value),
   },
 
   // License
