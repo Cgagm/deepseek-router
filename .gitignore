@@ -9,3 +9,9 @@ router.config.json
 *.log
 .DS_Store
 Thumbs.db
+
+# Desktop app builds
+packages/desktop/release/
+packages/desktop/out/
+*.exe
+*.zip

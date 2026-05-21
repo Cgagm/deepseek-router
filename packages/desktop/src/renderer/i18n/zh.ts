@@ -223,4 +223,4 @@ const zh = {
 } as const
 
 export default zh
-export type Translations = typeof zh
+export type Translations = Record<keyof typeof zh, string>

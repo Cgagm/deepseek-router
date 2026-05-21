@@ -1,0 +1,64 @@
+/* ===== 暖阳 Sunlight - Warm Light, Soft ===== */
+[data-theme="sunlight"] {
+  --bg-primary:              #FFFBF5;
+  --bg-secondary:            #FFF5E8;
+  --bg-tertiary:             #FFEFD8;
+  --bg-elevated:             #FFE9CC;
+  --bg-overlay:              rgba(60, 40, 20, 0.40);
+
+  --text-primary:            #2D2218;
+  --text-secondary:          #5C4F3E;
+  --text-tertiary:           #8A7D6E;
+  --text-inverse:            #FFFBF5;
+
+  --accent-primary:          #D97706;
+  --accent-secondary:        #FBBF24;
+  --accent-hover:            #B45309;
+  --accent-pressed:          #92400E;
+  --accent-subtle:           rgba(217, 119, 6, 0.07);
+
+  --border-primary:          #E8DCC8;
+  --border-secondary:        #F2E8D8;
+  --border-accent:           rgba(217, 119, 6, 0.30);
+
+  --shadow-sm:  0 1px 2px  rgba(60, 40, 20, 0.04);
+  --shadow-md:  0 4px 12px rgba(60, 40, 20, 0.06);
+  --shadow-lg:  0 8px 28px rgba(60, 40, 20, 0.08);
+  --shadow-xl:  0 16px 40px rgba(60, 40, 20, 0.10);
+
+  --glass-bg:               rgba(255, 250, 242, 0.70);
+  --glass-border:           rgba(217, 119, 6, 0.10);
+  --glass-blur:             12px;
+
+  --gradient-hero: linear-gradient(135deg, #FFEFD8 0%, #FFF5E8 35%, #FFFBF5 65%, #FFF8F0 100%);
+  --gradient-accent: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+  --gradient-card: linear-gradient(180deg, #FFFBF5 0%, #FFEFD8 100%);
+
+  --color-success:           #059669;
+  --color-warning:           #EA580C;
+  --color-error:             #DC2626;
+  --color-info:              #7C3AED;
+
+  --sidebar-bg:              #FFF5E8;
+  --sidebar-text:            #5C4F3E;
+  --sidebar-active-bg:       rgba(217, 119, 6, 0.10);
+  --sidebar-active-text:     #B45309;
+
+  --input-bg:                #FFFFFF;
+  --input-border:            #E8DCC8;
+  --input-focus-ring:        rgba(217, 119, 6, 0.22);
+  --input-placeholder:       #A89888;
+
+  --message-user-bg:         linear-gradient(135deg, #D97706, #F59E0B);
+  --message-user-text:       #FFFFFF;
+  --message-ai-bg:           #FFEFD8;
+  --message-ai-text:         #2D2218;
+  --message-ai-border:       #FFE9CC;
+
+  --scrollbar-thumb:         #E0D4C0;
+  --scrollbar-track:         transparent;
+  --code-bg:                 #FFF5E8;
+  --code-text:               #B45309;
+  --hover-bg:                rgba(217, 119, 6, 0.05);
+  --active-bg:               rgba(217, 119, 6, 0.09);
+}
