@@ -27,10 +27,10 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
-      - run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile --filter @deepseek-router/core
 
       - name: Build core
-        run: cd packages/core && pnpm build
+        run: pnpm --filter @deepseek-router/core build
 
       - name: Publish to npm
         run: cd packages/core && npm publish --access public
