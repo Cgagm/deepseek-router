@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Skill } from '../env'
+
 import { useChatStore } from '../store/chat'
 import { useViewStore } from '../store/view'
 import { useT } from '../i18n'
@@ -196,7 +196,7 @@ export default function SkillsView() {
                     }}>
                       {t(CATEGORY_KEY_MAP[skill.category] || 'cat_general')}
                     </span>
-                    {skill.tools.length > 0 && (
+                    {(skill.tools ?? []).length > 0 && (
                       <span style={{
                         padding: '2px var(--space-2)',
                         borderRadius: 'var(--radius-full)',
@@ -205,7 +205,7 @@ export default function SkillsView() {
                         fontSize: 'var(--text-xs)',
                         marginLeft: 'var(--space-1)',
                       }}>
-                        {skill.tools.length} 工具
+                        {(skill.tools ?? []).length} 工具
                       </span>
                     )}
                   </div>

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { ChatMessage } from '../env'
+
 import { useT } from '../i18n'
 
 interface Props {

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ChatMessage, ChatSession } from '../env'
+
 
 interface ChatState {
   sessions: ChatSession[]

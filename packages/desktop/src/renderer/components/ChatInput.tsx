@@ -42,7 +42,7 @@ export default function ChatInput() {
     try {
       const allMsgs = [...useChatStore.getState().messages]
       const response = await window.api.chat.send({
-        messages: allMsgs.map(m => ({ role: m.role, content: m.content })),
+        messages: allMsgs.map(m => ({ id: m.id, role: m.role, content: m.content, timestamp: m.timestamp })),
         stream: true,
       })
 

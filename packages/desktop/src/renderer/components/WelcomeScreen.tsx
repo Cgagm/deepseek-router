@@ -36,7 +36,7 @@ export default function WelcomeScreen() {
 
     try {
       const response = await window.api.chat.send({
-        messages: [{ role: userMsg.role, content: userMsg.content }],
+        messages: [userMsg],
         stream: true,
       })
 

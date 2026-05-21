@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Template } from '../env'
+
 import { useChatStore } from '../store/chat'
 import { useT } from '../i18n'
 import type { Translations } from '../i18n/zh'

@@ -23,6 +23,8 @@ interface Window {
       deleteChat: (id: string) => Promise<void>
       getSkills: () => Promise<Skill[]>
       getTemplates: () => Promise<Template[]>
+      getSetting: (key: string) => Promise<string | null>
+      setSetting: (key: string, value: string) => Promise<void>
     }
     // License
     license: {
@@ -44,6 +46,12 @@ interface Window {
       checkUpdate: () => Promise<{ hasUpdate: boolean; version?: string }>
       getPlatform: () => Promise<string>
       setTheme: (theme: string) => void
+    }
+    // Window controls
+    window: {
+      minimize: () => void
+      maximize: () => void
+      close: () => void
     }
   }
 }
@@ -72,6 +80,7 @@ interface ChatResponse {
   content: string
   provider: string
   model: string
+  streaming: boolean
   tokens: { prompt: number; completion: number }
 }
 
